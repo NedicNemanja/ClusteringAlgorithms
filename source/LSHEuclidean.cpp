@@ -10,7 +10,12 @@
 
 using namespace std;
 
-int LSH::Euclidean::w=300;
+
+/*sometimes the average inner_product of a dataset is too small and requires
+w<1, in that case we multiply the inner_product with the IP_COEFFICIENT
+to emphasize it and make the hash values spread evenly.*/
+double LSH::IP_COEFFICIENT=1000;
+int LSH::Euclidean::w=4;
 long int LSH::Euclidean::M = UINT32_MAX-4;   //4294967291 is prime
 std::vector<int> LSH::Euclidean::r;
 
@@ -73,11 +78,12 @@ unsigned int LSH::Euclidean::Hash(myvector& p){
 }
 
 long int LSH::Euclidean::get_h(int i, myvector& p){
-  double pv_inner = inner_product(p.begin(), p.end(), vectors[i].begin(), 0);
+  double pv_inner = inner_product(p.begin(),p.end(),vectors[i].begin(),(coord)0)
+                    *IP_COEFFICIENT;
 /*  cout << "inner_product of ";
-  p.print();
-  cout << endl << " and " << endl;
-  printVector(vectors[i]);
+  //p.print(cout);
+  //cout << endl << " and " << endl;
+  //printVector(vectors[i]);
   cout << "=" << pv_inner << endl;
   cout << "(" << pv_inner << "+" << t[i] << ")/" << w << "=" << floor( (pv_inner +t[i]) / w) << endl;
 */  return floor( (pv_inner +t[i]) / w);

@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+// stackoverflow.com/questions/1120140/how-can-i-read-and-parse-csv-files-in-c
+
 class CSVRow
 {
     public:

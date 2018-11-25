@@ -8,6 +8,11 @@
 #include "Metric.hpp"
 
 namespace Hypercube{
+  /*sometimes the average inner_product of a dataset is too small and requires
+  w<1, in that case we multiply the inner_product with the IP_COEFFICIENT
+  to emphasize it and make the hash values spread evenly.*/
+  extern double IP_COEFFICIENT;
+
   class Euclidean: public Metric{
       int dimension;
       std::vector<std::vector<float>> vectors; //K random vectors

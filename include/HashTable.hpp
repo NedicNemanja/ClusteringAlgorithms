@@ -33,6 +33,6 @@ class HashTable
     void PrintBuckets();
 };
 
-unsigned int TableSize(std::string metric, int num_vectors);
+unsigned int TableSize(std::string tabletype,std::string metric,int numvectors);
 
 #endif

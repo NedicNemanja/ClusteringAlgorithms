@@ -41,7 +41,7 @@ unsigned int CosineSimilarity::Hash(myvector& p){
 }
 
 int CosineSimilarity::get_h(int i,myvector &p){
-  double prod = inner_product(p.begin(), p.end(), r_vectors[i].begin(), 0);
+  double prod = inner_product(p.begin(), p.end(),r_vectors[i].begin(),(coord)0);
   return prod >= 0 ? 1 : 0;
 }
 

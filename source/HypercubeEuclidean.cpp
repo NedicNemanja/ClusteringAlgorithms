@@ -10,7 +10,8 @@
 
 using namespace std;
 
-int Hypercube::Euclidean::w=300;
+double Hypercube::IP_COEFFICIENT=1000;
+int Hypercube::Euclidean::w=4;
 
 Hypercube::Euclidean::Euclidean(int dim, int tsize)
 :Metric("euclidean"), dimension(dim), hmap(){
@@ -65,7 +66,8 @@ unsigned int Hypercube::Euclidean::Hash(myvector &p){
 }
 
 int Hypercube::Euclidean::get_h(int i, myvector& p){
-  double pv_inner = inner_product(p.begin(), p.end(), vectors[i].begin(), 0);
+  double pv_inner = inner_product(p.begin(),p.end(),vectors[i].begin(),(coord)0)
+                    *IP_COEFFICIENT;
 /*  cout << "inner_product of ";
   p.print();
   cout << endl << " and " << endl;

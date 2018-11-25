@@ -24,10 +24,10 @@ int main(int argc, char** argv){
   vector<HashTable*> LSH_Hashtables(CmdArgs::L);
   for(int i=0; i<CmdArgs::L; i++){
     LSH_Hashtables[i]=new HashTable(vectors,CmdArgs::Metric,dimension,"lsh");
-    LSH_Hashtables[i]->PrintBuckets();
+    //LSH_Hashtables[i]->PrintBuckets();
   }
   HashTable HypercubeHashtable(vectors,CmdArgs::Metric,dimension,"hypercube");
-  HypercubeHashtable.PrintBuckets();
+  //HypercubeHashtable.PrintBuckets();
   //open outfile
   if(CmdArgs::OutFile.empty()){
     cout << endl << "Provide outfile path:" << endl;
@@ -35,10 +35,9 @@ int main(int argc, char** argv){
   }
   ofstream outfile = OpenOutFile(CmdArgs::OutFile);
   /****************LSH****************************************************/
-
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
-  //  delete Hashtables[i];
+    delete LSH_Hashtables[i];
   }
   outfile.close();
   return OK;

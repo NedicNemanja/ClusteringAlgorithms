@@ -16,19 +16,24 @@ using CmdArgs::K;
 Suggested: =2,=4,=8,=16 */
 int div_tablesize = 4;
 
-unsigned int TableSize(string metric, int num_vectors){
-  if(metric == "euclidean")
-    return num_vectors / div_tablesize;
-  else if(metric == "cosine")
+unsigned int TableSize(string tabletype,string metric, int num_vectors){
+  if(tabletype == "lsh"){
+    if(metric == "euclidean")
+      return num_vectors / div_tablesize;
+    else if(metric == "cosine")
+      return pow(2,CmdArgs::K);
+    else
+      exit(UNKNOWN_METRIC);
+  }
+  if(tabletype == "hypercube")
     return pow(2,CmdArgs::K);
-  else
-    exit(UNKNOWN_METRIC);
 }
 
 /*Use this constructor if you did not know the num of vectors and you stored
 them temporarily in a list. This will insert all vectors from the list.*/
-HashTable::HashTable(list<myvector>& vlist, string metric_name,int dimension,string tabletype)
-:tabletype(tabletype),buckets(TableSize(metric_name,vlist.size()))
+HashTable::HashTable(list<myvector>& vlist, string metric_name,int dimension,
+  string tabletype)
+:tabletype(tabletype),buckets(TableSize(tabletype,metric_name,vlist.size()))
 {
   if(metric_name == "euclidean"){
     if(tabletype=="lsh")
@@ -47,7 +52,7 @@ HashTable::HashTable(list<myvector>& vlist, string metric_name,int dimension,str
     cout << "Unknown metric: " << metric_name << endl;
     exit(UNKNOWN_METRIC);
   }
-  cout << "Creating HashTable with " << buckets.size() << "buckets"<< endl;
+  cout<<"Creating "<< tabletype<<" HashTable with "<<buckets.size()<<"buckets"<<endl;
   InsertList(vlist);
 }
 
@@ -81,7 +86,7 @@ int tablesize,string tabletype)
 before you create a temporary list to store the vectors.
 That way you can immediately HashTable::Insert them here*/
 HashTable::HashTable(int size, string metric_name, int dimension,string tabletype)
-:tabletype(tabletype),buckets(TableSize(metric_name,size))
+:tabletype(tabletype),buckets(TableSize(tabletype,metric_name,size))
 {
   if(metric_name == "euclidean"){
     if(tabletype=="lsh")
