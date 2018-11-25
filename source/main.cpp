@@ -6,6 +6,7 @@
 #include "HashTable.hpp"
 #include "utility.hpp"
 #include "ErrorCodes.hpp"
+#include "Cluster.hpp"
 
 using namespace std;
 
@@ -34,7 +35,10 @@ int main(int argc, char** argv){
     cin >> CmdArgs::OutFile;
   }
   ofstream outfile = OpenOutFile(CmdArgs::OutFile);
-  /****************LSH****************************************************/
+  /****************CLUSTERING**************************************************/
+  ClusterSpace S1(vectors,"Random");
+  ClusterSpace S2(vectors,"K-means++");
+
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
     delete LSH_Hashtables[i];
