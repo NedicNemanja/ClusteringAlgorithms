@@ -6,7 +6,7 @@
 #include "HashTable.hpp"
 #include "utility.hpp"
 #include "ErrorCodes.hpp"
-#include "Cluster.hpp"
+#include "ClusterSpace.hpp"
 
 using namespace std;
 
@@ -36,9 +36,38 @@ int main(int argc, char** argv){
   }
   ofstream outfile = OpenOutFile(CmdArgs::OutFile);
   /****************CLUSTERING**************************************************/
-  ClusterSpace S1(vectors,"Random");
-  ClusterSpace S2(vectors,"K-means++");
-
+  for(int i=0; i<12; i++){
+    cout << "Starting ";
+    //Initialization**********************************
+    ClusterSpace* S;
+    if(i<=5){  //0-5
+      cout << "Random Init | ";
+      S = new ClusterSpace(vectors,"Random");
+    }
+    else{      //6-11
+      cout << "K-means++ Init | ";
+      S = new ClusterSpace(vectors,"K-means++");
+    }
+    //Assignment**************************************
+    if(i%6<=1){       //0,1 6,7 Lloyd's
+      cout << "Lloyd's Assignment | ";
+      //S->LloydsAssignment();
+    }
+    else if(i%6<=3){  //2,3 8,9 Range Search LSH
+      cout << "Range Search LSH Assignment | ";
+    }
+    else{             //4,5 10,11 Range Search Hypercube
+      cout << "Range Search Hypercube Assignment | ";
+    }
+    //Update*******************************************
+    if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+      cout << "K-means Update" << endl;
+    }
+    else{         //1,3,5,7,9,11 PAM
+      cout << "Pam improved like Lloyd's Update" << endl;
+    }
+    delete S;
+  }
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
     delete LSH_Hashtables[i];
