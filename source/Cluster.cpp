@@ -3,11 +3,13 @@
 
 #include <cstdlib>
 #include <ctime>
-#include <stdexcept>  //out_of_range
+#include <random>
+#include <algorithm> //uper_bound
+#include <utility.hpp>
 
 using namespace std;
 
-ClusterSpace::ClusterSpace(list<myvector> &vectors, const std::string algo_name)
+ClusterSpace::ClusterSpace(vector<myvector> &vectors,const string algo_name)
 {
   if(algo_name == "Random"){
     srand(time(NULL));
@@ -20,39 +22,31 @@ ClusterSpace::ClusterSpace(list<myvector> &vectors, const std::string algo_name)
   if(algo_name == "K-means++"){
     //choose a centroid uniformly
     random_device generator;
-    uniform_int_distribution<int> distribution(0,vectors.size());
+    uniform_int_distribution<int> distribution(0,vectors.size()-1);
     Cluster c(vectors[distribution(generator)]);
     Clusters.push_back(c);
     //distances (vector to nearest center) that get updated every loop
-    std::vector<double> distances(vectors.size(),0);
-    std::vector<double> probabilities(vectors.size());
+    std::vector<double> DistPartialSums(vectors.size(),0);
+    double prev_sum=0;
     for(int t=1; t<=CmdArgs::number_of_clusters; t++){
       /*For every non-centroid,compute D(x), the distance between x and the
       nearest center that has already been chosen.*/
-      double sum_of_distances=0;
       for(int v=0; v<vectors.size(); v++){
         if(isCenter(vectors[v])) continue;
-        //update distance to nearest center
-        sum_of_distances -= distances[v];
-        //distances[v] = MinDistanceToCenter(vectors[v],getCenters()); //D(x)
-        sum_of_distances += distances[v];
+        //update distance to nearest center and keep track in partial sums
+        DistPartialSums[v] = prev_sum + pow(MinDistanceToCenter(vectors[v]),2);
+        prev_sum = DistPartialSums[v];
       }
       /*Choose one new data point at random as a new center,
-      using a weighted probability distribution where a point x is chosen
+      using a probability distribution where a point x is chosen
       with probability proportional to D(x)2.*/
-      double max_prob;
-      int max_v;
-      for(int v=0; v<vectors.size(); v++){
-        if(isCenter(vectors[v])) continue;
-        probabilities[v] = ((double)rand()/(RAND_MAX))
-                            *pow(distances[v],2)/sum_of_distances;
-        if(probabilities[v] > max_prob){
-          max_prob = probabilities[v];
-          max_v = v;
-        }
-      }
-      //create new center
-      Cluster new_cluster(vectors[max_v]);
+      uniform_real_distribution<double> x(0,DistPartialSums[vectors.size()-1]);
+      typename std::vector<double>::iterator new_center =
+      upper_bound(DistPartialSums.begin(),DistPartialSums.end(),x(generator));
+      //create cluster with new center
+      int pos = new_center-DistPartialSums.begin();
+      cout << *new_center << " at " << pos << endl << flush;
+      Cluster new_cluster(vectors[pos]);
       Clusters.push_back(new_cluster);
     }
   }
@@ -77,7 +71,27 @@ bool ClusterSpace::isCenter(myvector &p){
   return false;
 }
 
+void ClusterSpace::Print(){
+  for(vector<Cluster>::iterator it=Clusters.begin(); it!=Clusters.end(); it++){
+    it->Print();
+  }
+}
 
+/*Return the min distance to any center in the Cluster Space*/
+double ClusterSpace::MinDistanceToCenter(myvector &v){
+  //get all centers
+  vector<myvector> centers = getCenters();
+  //find distance to first center and set it as min
+  double min_dist=EuclideanVectorDistance(v.begin(),v.end(),centers[0].begin());
+  for(int i=1; i<centers.size(); i++){
+    //for all next distances find the smallest
+    double dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
+    if(min_dist> dist){
+      min_dist = dist;
+    }
+  }
+  return min_dist;
+}
 
 
 
@@ -91,5 +105,17 @@ Cluster::Cluster(myvector &c)
 Cluster::~Cluster(){}
 
 myvector Cluster::getCenter(){
-  return center
+  return center;
+}
+
+void Cluster::Print(){
+  cout << "\t" << "center: ";
+  center.print(cout);
+  cout << endl;
+  return;
+  for(vector<myvector>::iterator it=vectors.begin(); it!=vectors.end(); it++){
+    cout << "\t";
+    it->print(cout);
+    cout << endl;
+  }
 }

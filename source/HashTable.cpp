@@ -31,9 +31,9 @@ unsigned int TableSize(string tabletype,string metric, int num_vectors){
 
 /*Use this constructor if you did not know the num of vectors and you stored
 them temporarily in a list. This will insert all vectors from the list.*/
-HashTable::HashTable(list<myvector>& vlist, string metric_name,int dimension,
+HashTable::HashTable(vector<myvector>& vectors,string metric_name,int dimension,
   string tabletype)
-:tabletype(tabletype),buckets(TableSize(tabletype,metric_name,vlist.size()))
+:tabletype(tabletype),buckets(TableSize(tabletype,metric_name,vectors.size()))
 {
   if(metric_name == "euclidean"){
     if(tabletype=="lsh")
@@ -53,11 +53,11 @@ HashTable::HashTable(list<myvector>& vlist, string metric_name,int dimension,
     exit(UNKNOWN_METRIC);
   }
   cout<<"Creating "<< tabletype<<" HashTable with "<<buckets.size()<<"buckets"<<endl;
-  InsertList(vlist);
+  InsertVector(vectors);
 }
 
 //Same as before, but tablesize is set manually (used in hypercube)
-HashTable::HashTable(list<myvector> &vlist, string metric_name,int dimension,
+HashTable::HashTable(vector<myvector> &vectors,string metric_name,int dimension,
 int tablesize,string tabletype)
 :tabletype(tabletype),buckets(tablesize)
 {
@@ -79,7 +79,7 @@ int tablesize,string tabletype)
     exit(UNKNOWN_METRIC);
   }
   cout << "Creating HashTable with " << buckets.size() << "buckets"<< endl;
-  InsertList(vlist);
+  InsertVector(vectors);
 }
 
 /*Use this constructor if you know the size (num of vectors) for your HashTable
@@ -130,6 +130,12 @@ void HashTable::InsertList(list<myvector>& vlist){
   }
 }
 
+/*Insert all elements of a vector to hashtable*/
+void HashTable::InsertVector(vector<myvector> &vectors){
+  for(vector<myvector>::iterator it=vectors.begin(); it != vectors.end(); it++){
+    Insert(*it);
+  }
+}
 
 
 

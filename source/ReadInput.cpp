@@ -134,12 +134,12 @@ void ReadConfigurationFile(std::string filename){
 }
 
 
-list<myvector> ReadDataset(ifstream &data, int dim){
+vector<myvector> ReadDataset(ifstream &data, int dim){
   cout << endl << "Reading dataset from disk..." << endl;
   //read coords from input and initialize vectors
   string id;
   vector<coord> coords(dim);  //temp vector that gets overwritten every loop
-  list<myvector> vectors;
+  vector<myvector> vectors;
   while(GetVector(data, coords, id, dim)){
       myvector vec(coords,id);
       //vec.print(cout);

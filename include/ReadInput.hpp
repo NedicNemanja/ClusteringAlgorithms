@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <list>
 #include <string>
 
 #include "myvector.hpp"
@@ -22,7 +21,7 @@ void ParseArguments(int argc, char** argv);
 /*Parse .conf file*/
 void ReadConfigurationFile(std::string filename);
 
-std::list<myvector> ReadDataset(std::ifstream &data,int dim);
+std::vector<myvector> ReadDataset(std::ifstream &data,int dim);
 
 //Check the first vector from stream and find its dimension
 int FindDimension(std::ifstream &data);

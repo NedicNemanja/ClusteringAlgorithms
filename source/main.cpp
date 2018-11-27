@@ -18,7 +18,7 @@ int main(int argc, char** argv){
   //open input file
   ifstream data = OpenInFile(CmdArgs::InputFile);
   //read data from file
-  list<myvector> vectors = ReadDataset(data,dimension);
+  vector<myvector> vectors = ReadDataset(data,dimension);
   cout << "Read input set of " << vectors.size() << "vectors" << endl;
   data.close();
   //Initialize Hashtables
