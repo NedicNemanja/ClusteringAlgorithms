@@ -6,24 +6,28 @@
 #include <random>
 #include <algorithm> //uper_bound
 #include <utility.hpp>
+#include <map> //multimap
 
 using namespace std;
 
-ClusterSpace::ClusterSpace(vector<myvector> &vectors,const string algo_name)
+ClusterSpace::ClusterSpace(MyVectorContainer &vectors,string init,
+string assign, string update)
+:init_algorithm(init),assign_algorithm(assign),update_algorithm(update)
 {
-  if(algo_name == "Random"){
+  cout<<"Starting "<<init<<" | "<<assign<<" | "<<update<<endl;
+  if(init_algorithm == "Random"){
     srand(time(NULL));
     for(int i=0; i<CmdArgs::number_of_clusters; i++){
       //init cluster with random center
-      Cluster c(vectors[rand()%vectors.size()]);
+      Cluster c(rand()%vectors.size());
       Clusters.push_back(c);
     }
   }
-  if(algo_name == "K-means++"){
+  if(init_algorithm == "K-means++"){
     //choose a centroid uniformly
     random_device generator;
     uniform_int_distribution<int> distribution(0,vectors.size()-1);
-    Cluster c(vectors[distribution(generator)]);
+    Cluster c(distribution(generator));
     Clusters.push_back(c);
     //distances (vector to nearest center) that get updated every loop
     std::vector<double> DistPartialSums(vectors.size(),0);
@@ -31,7 +35,7 @@ ClusterSpace::ClusterSpace(vector<myvector> &vectors,const string algo_name)
     for(int t=1; t<=CmdArgs::number_of_clusters; t++){
       /*For every non-centroid,compute D(x), the distance between x and the
       nearest center that has already been chosen.*/
-      for(int v=0; v<vectors.size(); v++){
+      for(vector_index v=0; v<vectors.size(); v++){
         if(isCenter(vectors[v])) continue;
         //update distance to nearest center and keep track in partial sums
         DistPartialSums[v] = prev_sum + MinDistanceToCenterSquared(vectors[v]);
@@ -44,10 +48,9 @@ ClusterSpace::ClusterSpace(vector<myvector> &vectors,const string algo_name)
       typename std::vector<double>::iterator new_center =
       upper_bound(DistPartialSums.begin(),DistPartialSums.end(),x(generator));
       //create cluster with new center
-      int pos = new_center-DistPartialSums.begin();
+      vector_index pos = new_center-DistPartialSums.begin();
       //cout << *new_center << " at " << pos << endl << flush;
-      Cluster new_cluster(vectors[pos]);
-      Clusters.push_back(new_cluster);
+      Clusters.push_back(Cluster(pos));
     }
   }
 }
@@ -112,18 +115,52 @@ int ClusterSpace::NearestCenter(myvector &v){
   return nearest_center_pos;
 }
 
+
+void RunClusteringAlgorithms(){
+
+  if(assign_algorithm == "Llyod's"){
+
+  }
+  if(assign_algorithm == "RangeSearchLSH"){
+
+  }
+  if(assign_algorithm == "RangeSearchHypercube"){
+
+  }
+
+}
+
 /*Assign vectors to their nearest center*/
-void ClusterSpace::LloydsAssignment(vector<myvector> &vectors){
-  for(auto it=vectors.begin(); it!=vectors.end(); it++){
-    if(isCenter(*it)) continue;
-    Clusters[NearestCenter(*it)].AddVector(*it);
+void ClusterSpace::LloydsAssignment(MyVectorContainer &vectors){
+  for(vector_index i=0; i<vectors.size(); i++){
+    if(isCenter(vectors[i])) continue;
+    Clusters[NearestCenter(vectors[i])].AddVector(i);
   }
 }
 
-void ClusterSpace::RangeSearchLSHAssignment(vector<HashTable*> HTables)
+void ClusterSpace::RangeSearchLSHAssignment(MyVectorContainer &vectors,
+                                            vector<HashTable*> HTables)
 {
-  unordered_set<string> AssignedVectors; //set of already assigned vectors by id
   double range = MinDistanceBetweenCenters()/2;
+  //bitmap that mirrors MyVectorContainer indexing (true if vector's assigned)
+  vector<bool> AssignedVectorBitMap(vectors.size(),false);
+  int num_assigned_vectors=0;
+
+  while(num_assigned_vectors<vectors.size() /*&& colision_num<max_colisions*/
+      /*&& no center changed*/ /*&& range>=max_range*/){
+    //(Re)Assign centers
+
+    //detect colisions between centers
+    //range search for every hashtable
+    for(auto htable=HTables.begin(); htable!=HTables.end(); htable++){
+      //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
+      multimap<int,myvector&> CenterMap;
+      HashCenters(CenterMap,getCenters(),*htable);
+      //range search for every bucket
+
+    }
+    range*=2;
+  }
 
 }
 
@@ -147,4 +184,15 @@ double ClusterSpace::MinDistanceBetweenCenters(){
     }
   }
   return min_dist;
+}
+
+
+
+/************Non_Members*******************************************************/
+void HashCenters(multimap<int,myvector&> &hashmap, vector<myvector> Centers,
+HashTable* HTable){
+  for(auto it=Centers.begin(); it!=Centers.end(); it++){
+    int hash = HTable->get_hash(*it);
+    hashmap.insert(std::pair<int,myvector&>(hash,*it));
+  }
 }

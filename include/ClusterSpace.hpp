@@ -5,11 +5,15 @@
 #include "myvector.hpp"
 #include "HashTable.hpp"
 #include <vector>
+#include <map>
 
 class ClusterSpace{
     std::vector<Cluster> Clusters;
+    std::string init_algorithm;
+    std::string assign_algorithm;
+    std::string update_algorithm;
   public:
-    ClusterSpace(std::vector<myvector> &vectors, const std::string algo_name);
+    ClusterSpace(MyVectorContainer&, std::string, std::string, std::string);
     ~ClusterSpace();
     std::vector<myvector> getCenters();
     void Print();
@@ -17,8 +21,14 @@ class ClusterSpace{
     double MinDistanceToCenterSquared(myvector &v);
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
-    void LloydsAssignment(std::vector<myvector> &vectors);
-    void RangeSearchLSHAssignment(vector<myvector>&,vector<HashTable*>&);
+
+    void RunClusteringAlgorithms();
+    void LloydsAssignment(MyVectorContainer &vectors);
+    void RangeSearchLSHAssignment(MyVectorContainer&,std::vector<HashTable*>);
 };
+
+/*Hash centers to buckets and save that information to a multimap*/
+void HashCenters(std::multimap<int,myvector&> &hashmap,
+                 std::vector<myvector> Centers, HashTable* HTable);
 
 #endif

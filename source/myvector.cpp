@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+MyVectorContainer AllVectors;
+
 myvector::myvector(){}
 
 myvector::myvector(const myvector& obj)

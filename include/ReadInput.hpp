@@ -21,7 +21,7 @@ void ParseArguments(int argc, char** argv);
 /*Parse .conf file*/
 void ReadConfigurationFile(std::string filename);
 
-std::vector<myvector> ReadDataset(std::ifstream &data,int dim);
+MyVectorContainer ReadDataset(std::ifstream &data,int dim);
 
 //Check the first vector from stream and find its dimension
 int FindDimension(std::ifstream &data);

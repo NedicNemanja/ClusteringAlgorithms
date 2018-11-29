@@ -134,7 +134,7 @@ void ReadConfigurationFile(std::string filename){
 }
 
 
-vector<myvector> ReadDataset(ifstream &data, int dim){
+MyVectorContainer ReadDataset(ifstream &data, int dim){
   cout << endl << "Reading dataset from disk..." << endl;
   //read coords from input and initialize vectors
   string id;

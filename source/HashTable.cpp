@@ -31,7 +31,7 @@ unsigned int TableSize(string tabletype,string metric, int num_vectors){
 
 /*Use this constructor if you did not know the num of vectors and you stored
 them temporarily in a list. This will insert all vectors from the list.*/
-HashTable::HashTable(vector<myvector>& vectors,string metric_name,int dimension,
+HashTable::HashTable(MyVectorContainer& vectors,string metric_name,int dimension,
   string tabletype)
 :tabletype(tabletype),buckets(TableSize(tabletype,metric_name,vectors.size()))
 {
@@ -57,7 +57,7 @@ HashTable::HashTable(vector<myvector>& vectors,string metric_name,int dimension,
 }
 
 //Same as before, but tablesize is set manually (used in hypercube)
-HashTable::HashTable(vector<myvector> &vectors,string metric_name,int dimension,
+HashTable::HashTable(MyVectorContainer &vectors,string metric_name,int dimension,
 int tablesize,string tabletype)
 :tabletype(tabletype),buckets(tablesize)
 {
@@ -117,23 +117,16 @@ HashTable::~HashTable(){
 
 
 /*Insert a new vector to the table*/
-void HashTable::Insert(myvector& p){
-  unsigned int h = metric->Hash(p);
+void HashTable::Insert(MyVectorContainer &vectors,vector_index vindex){
+  unsigned int h = metric->Hash(vectors[vindex]);
   //cout << h << " ";
-  buckets[h].push_back(p);
-}
-
-/*Insert all elements of a list to hashtable*/
-void HashTable::InsertList(list<myvector>& vlist){
-  for(list<myvector>::iterator it=vlist.begin(); it != vlist.end(); it++){
-    Insert(*it);
-  }
+  buckets[h].push_back(vindex);
 }
 
 /*Insert all elements of a vector to hashtable*/
-void HashTable::InsertVector(vector<myvector> &vectors){
-  for(vector<myvector>::iterator it=vectors.begin(); it != vectors.end(); it++){
-    Insert(*it);
+void HashTable::InsertVector(MyVectorContainer &vectors){
+  for(int i=0; i<vectors.size(); i++){
+    Insert(vectors,i);
   }
 }
 
@@ -146,18 +139,19 @@ Bucket HashTable::get_bucket(myvector& v){
 
 /*Find in which bucket q should belong
 and filter out any vectors with a different g*/
-Bucket HashTable::get_bucket_filtered(myvector& q){
+Bucket HashTable::get_bucket_filtered(MyVectorContainer &vectors, myvector& q){
   Bucket bucket = get_bucket(q);  //find the corresponding bucket for q
   if(metric->name != "euclidean") //filter only for euclidean metric
     return bucket;
 
   Bucket result;
   std::vector<long int> g_of_q = metric->get_g(q);
-  for(Bucket::iterator p=bucket.begin(); p != bucket.end(); p++){
-      //for ever p check g's with q
-      std::vector<long int> g_of_p = metric->get_g(*p);
+  for(vector_index vindex=0; vindex<bucket.size(); vindex++){
+      //p := vectors[vindex];
+      //for ever p in bucket check g's with q
+      std::vector<long int> g_of_p = metric->get_g(vectors[vindex]);
       if(vectorCompare(g_of_q,g_of_p) == true) //same g's
-        result.push_back(*p);
+        result.push_back(vindex);
   }
   return result;
 }

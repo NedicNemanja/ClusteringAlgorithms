@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-typedef double coord;
+typedef double coord; //myvector coordinates
 
 class myvector {
     std::vector<coord> values;
@@ -21,5 +21,10 @@ class myvector {
     std::vector<coord>::iterator begin();
     std::vector<coord>::iterator end();
 };
+
+typedef std::vector<myvector> MyVectorContainer;
+typedef int vector_index;  //used to locate a myvector in MyVectorPool
+
+extern MyVectorContainer AllVectors;
 
 #endif

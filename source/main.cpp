@@ -7,10 +7,12 @@
 #include "utility.hpp"
 #include "ErrorCodes.hpp"
 #include "ClusterSpace.hpp"
-
-using namespace std;
+#include "myvector.hpp" //so i can set AllVectors
 
 #define dimension 203
+
+using namespace std;
+void SetAlgorithmChoices(string &init, string &assign,string &update);
 
 int main(int argc, char** argv){
   /*****************PREPROCESSING*************************************/
@@ -18,16 +20,16 @@ int main(int argc, char** argv){
   //open input file
   ifstream data = OpenInFile(CmdArgs::InputFile);
   //read data from file
-  vector<myvector> vectors = ReadDataset(data,dimension);
-  cout << "Read input set of " << vectors.size() << "vectors" << endl;
+  AllVectors = ReadDataset(data,dimension);
+  cout << "Read input set of " << AllVectors.size() << "vectors" << endl;
   data.close();
   //Initialize Hashtables
   vector<HashTable*> LSH_Hashtables(CmdArgs::L);
   for(int i=0; i<CmdArgs::L; i++){
-    LSH_Hashtables[i]=new HashTable(vectors,CmdArgs::Metric,dimension,"lsh");
+    LSH_Hashtables[i]=new HashTable(AllVectors,CmdArgs::Metric,dimension,"lsh");
     //LSH_Hashtables[i]->PrintBuckets();
   }
-  HashTable HypercubeHashtable(vectors,CmdArgs::Metric,dimension,"hypercube");
+  HashTable HypercubeHashtable(AllVectors,CmdArgs::Metric,dimension,"hypercube");
   //HypercubeHashtable.PrintBuckets();
   //open outfile
   if(CmdArgs::OutFile.empty()){
@@ -37,53 +39,10 @@ int main(int argc, char** argv){
   ofstream outfile = OpenOutFile(CmdArgs::OutFile);
   /****************CLUSTERING**************************************************/
   for(int i=0; i<12; i++){
-    cout << "Starting ";
-    //Initialization**********************************
-    ClusterSpace* S;
-    if(i<=5){  //0-5
-      cout << "Random Init | ";
-      S = new ClusterSpace(vectors,"Random");
-    }
-    else{      //6-11
-      cout << "K-means++ Init | ";
-      S = new ClusterSpace(vectors,"K-means++");
-    }
-    //Assignment&Update**************************************
-    if(i%6<=1){       //0,1 6,7 Lloyd's
-      cout << "Lloyd's Assignment | ";
-      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
-        cout << "K-means Update" << endl;
-        S->LloydsAssignment(vectors);
-        //S->KmeansUpdate();
-      }
-      else{         //1,3,5,7,9,11 PAM
-        cout << "Pam improved like Lloyd's Update" << endl;
-      }
-    }
-    else if(i%6<=3){  //2,3 8,9 Range Search LSH
-      cout << "Range Search LSH Assignment | ";
-      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
-        cout << "K-means Update" << endl;
-        //S->RangeSearchLSHAssignment(vectors,LSH_Hashtables);
-        //S->KmeansUpdate();
-      }
-      else{         //1,3,5,7,9,11 PAM
-        cout << "Pam improved like Lloyd's Update" << endl;
-      }
-    }
-    else{             //4,5 10,11 Range Search Hypercube
-      cout << "Range Search Hypercube Assignment | ";
-      //Update*******************************************
-      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
-        cout << "K-means Update" << endl;
-        //S->RageSearchHypercubeAssignment();
-        //S->KmeansUpdate();
-      }
-      else{         //1,3,5,7,9,11 PAM
-        cout << "Pam improved like Lloyd's Update" << endl;
-      }
-    }
-    delete S;
+    string init,assign,update;
+    SetAlgorithmChoices(init,assign,update);
+    ClusterSpace S(AllVectors,init,assign,update);
+    S.RunClusteringAlgorithms();
   }
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
@@ -91,4 +50,41 @@ int main(int argc, char** argv){
   }
   outfile.close();
   return OK;
+}
+
+void SetAlgorithmChoices(string &init, string &assign,string &update){
+    if(i<=5){  //0-5
+      init.assign("Random Init");
+    }
+    else{      //6-11
+      init.assign("K-means++");
+    }
+    //Assignment&Update**************************************
+    if(i%6<=1){       //0,1 6,7 Lloyd's
+      assign.assign("Lloyd's");
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        update.assign("K-means");
+      }
+      else{         //1,3,5,7,9,11 PAM
+        update.assign("PAM");
+      }
+    }
+    else if(i%6<=3){  //2,3 8,9 Range Search LSH
+      assign.assign("RangeSearchLSH");
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        update.assign("K-means");
+      }
+      else{         //1,3,5,7,9,11 PAM
+        update.assign("PAM");
+      }
+    }
+    else{             //4,5 10,11 Range Search Hypercube
+      assign.assign("RangeSearchHypercube");
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        update.assign("K-means");
+      }
+      else{         //1,3,5,7,9,11 PAM
+        update.assign("PAM");
+      }
+    }
 }
