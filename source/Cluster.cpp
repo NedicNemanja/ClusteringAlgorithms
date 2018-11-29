@@ -23,3 +23,7 @@ void Cluster::Print(){
     cout << endl;
   }
 }
+
+void Cluster::AddVector(myvector &v){
+  vectors.push_back(v);
+}

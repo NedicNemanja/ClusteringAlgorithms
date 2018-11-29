@@ -48,23 +48,40 @@ int main(int argc, char** argv){
       cout << "K-means++ Init | ";
       S = new ClusterSpace(vectors,"K-means++");
     }
-    //Assignment**************************************
+    //Assignment&Update**************************************
     if(i%6<=1){       //0,1 6,7 Lloyd's
       cout << "Lloyd's Assignment | ";
-      //S->LloydsAssignment();
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        cout << "K-means Update" << endl;
+        S->LloydsAssignment(vectors);
+        //S->KmeansUpdate();
+      }
+      else{         //1,3,5,7,9,11 PAM
+        cout << "Pam improved like Lloyd's Update" << endl;
+      }
     }
     else if(i%6<=3){  //2,3 8,9 Range Search LSH
       cout << "Range Search LSH Assignment | ";
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        cout << "K-means Update" << endl;
+        //S->RangeSearchLSHAssignment(vectors,LSH_Hashtables);
+        //S->KmeansUpdate();
+      }
+      else{         //1,3,5,7,9,11 PAM
+        cout << "Pam improved like Lloyd's Update" << endl;
+      }
     }
     else{             //4,5 10,11 Range Search Hypercube
       cout << "Range Search Hypercube Assignment | ";
-    }
-    //Update*******************************************
-    if(i%2 == 0){ //0,2,4,6,8,10 K-Means
-      cout << "K-means Update" << endl;
-    }
-    else{         //1,3,5,7,9,11 PAM
-      cout << "Pam improved like Lloyd's Update" << endl;
+      //Update*******************************************
+      if(i%2 == 0){ //0,2,4,6,8,10 K-Means
+        cout << "K-means Update" << endl;
+        //S->RageSearchHypercubeAssignment();
+        //S->KmeansUpdate();
+      }
+      else{         //1,3,5,7,9,11 PAM
+        cout << "Pam improved like Lloyd's Update" << endl;
+      }
     }
     delete S;
   }

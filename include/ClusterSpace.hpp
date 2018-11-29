@@ -3,6 +3,8 @@
 
 #include "Cluster.hpp"
 #include "myvector.hpp"
+#include "HashTable.hpp"
+#include <vector>
 
 class ClusterSpace{
     std::vector<Cluster> Clusters;
@@ -12,7 +14,11 @@ class ClusterSpace{
     std::vector<myvector> getCenters();
     void Print();
     bool isCenter(myvector &p);
-    double MinDistanceToCenter(myvector &v);
+    double MinDistanceToCenterSquared(myvector &v);
+    double MinDistanceBetweenCenters();
+    int NearestCenter(myvector &v);
+    void LloydsAssignment(std::vector<myvector> &vectors);
+    void RangeSearchLSHAssignment(vector<myvector>&,vector<HashTable*>&);
 };
 
 #endif

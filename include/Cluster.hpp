@@ -7,12 +7,13 @@
 class Cluster{
     Metric* metric;
     myvector center;
-    std::vector<myvector> vectors;  //points that belong to the cluster, excluding center
+    std::unordered_set<string> assigned;  //id's of points that belong to the cluster, excluding centers
   public:
     Cluster(myvector &center);
     ~Cluster();
     myvector getCenter();
     void Print();
+    void AddVector(myvector &v);
 };
 
 #endif

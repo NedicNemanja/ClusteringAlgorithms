@@ -9,7 +9,7 @@ using CmdArgs::K;
 
 CosineSimilarity::CosineSimilarity(int dim)
 :Metric("cosine"),dimension(dim),r_vectors(CmdArgs::K){
-  cout << "Creating Cosine" << endl;
+  //cout << "Creating Cosine" << endl;
   SetRandRvectors(dimension);
 }
 

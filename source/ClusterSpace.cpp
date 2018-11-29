@@ -34,7 +34,7 @@ ClusterSpace::ClusterSpace(vector<myvector> &vectors,const string algo_name)
       for(int v=0; v<vectors.size(); v++){
         if(isCenter(vectors[v])) continue;
         //update distance to nearest center and keep track in partial sums
-        DistPartialSums[v] = prev_sum + pow(MinDistanceToCenter(vectors[v]),2);
+        DistPartialSums[v] = prev_sum + MinDistanceToCenterSquared(vectors[v]);
         prev_sum = DistPartialSums[v];
       }
       /*Choose one new data point at random as a new center,
@@ -56,7 +56,7 @@ ClusterSpace::~ClusterSpace(){}
 
 vector<myvector> ClusterSpace::getCenters(){
   vector<myvector> result;
-  for(vector<Cluster>::iterator it=Clusters.begin(); it!=Clusters.end(); it++){
+  for(auto it=Clusters.begin(); it!=Clusters.end(); it++){
     result.push_back(it->getCenter());
   }
   return result;
@@ -78,16 +78,72 @@ void ClusterSpace::Print(){
 }
 
 /*Return the min distance to any center in the Cluster Space*/
-double ClusterSpace::MinDistanceToCenter(myvector &v){
+double ClusterSpace::MinDistanceToCenterSquared(myvector &v){
   //get all centers
   vector<myvector> centers = getCenters();
   //find distance to first center and set it as min
+  double min_dist=
+  EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[0].begin()),dist;
+  for(int i=1; i<centers.size(); i++){
+    //for all next distances find the smallest
+    dist = EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[i].begin());
+    if(min_dist> dist){
+      min_dist = dist;
+    }
+  }
+  return min_dist;
+}
+
+/*Return the position of nearest center in the Cluster Space "Clusters" vector*/
+int ClusterSpace::NearestCenter(myvector &v){
+  //get all centers
+  vector<myvector> centers = getCenters();
+  //find distance to first center and set it as min
+  int nearest_center_pos=0;
   double min_dist=EuclideanVectorDistance(v.begin(),v.end(),centers[0].begin());
   for(int i=1; i<centers.size(); i++){
     //for all next distances find the smallest
     double dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
     if(min_dist> dist){
       min_dist = dist;
+      nearest_center_pos = i;
+    }
+  }
+  return nearest_center_pos;
+}
+
+/*Assign vectors to their nearest center*/
+void ClusterSpace::LloydsAssignment(vector<myvector> &vectors){
+  for(auto it=vectors.begin(); it!=vectors.end(); it++){
+    if(isCenter(*it)) continue;
+    Clusters[NearestCenter(*it)].AddVector(*it);
+  }
+}
+
+void ClusterSpace::RangeSearchLSHAssignment(vector<HashTable*> HTables)
+{
+  unordered_set<string> AssignedVectors; //set of already assigned vectors by id
+  double range = MinDistanceBetweenCenters()/2;
+
+}
+
+double ClusterSpace::MinDistanceBetweenCenters(){
+  //get all centers
+  vector<myvector> centers = getCenters();
+  //find distance to first center and set it as min
+  double dist, min_dist = EuclideanVectorDistance(centers[0].begin(),
+                                                  centers[0].end(),
+                                                  centers[1].begin());
+  for(int i=0; i<centers.size(); i++){
+    for(int j=i+1; j<centers.size(); j++){
+      if(i==0 && j==1) continue;
+      //for all next distances find the smallest
+      dist = EuclideanVectorDistance(centers[i].begin(),
+                                     centers[i].end(),
+                                     centers[j].begin());
+      if(dist < min_dist){
+        min_dist = dist;
+      }
     }
   }
   return min_dist;

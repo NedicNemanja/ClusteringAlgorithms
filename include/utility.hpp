@@ -48,6 +48,17 @@ double EuclideanVectorDistance(Iter_T first, Iter_T last, Iter2_T first2) {
 };
 
 template<class Iter_T, class Iter2_T>
+double EuclideanVectorDistanceSquared(Iter_T first, Iter_T last, Iter2_T first2)
+{
+  double ret = 0.0;
+  while (first != last) {
+    double dist = (*first++) - (*first2++);
+    ret += dist * dist;
+  }
+  return ret > 0.0 ? ret : 0.0;
+};
+
+template<class Iter_T, class Iter2_T>
 double CosineVectorDistance(Iter_T first, Iter_T last, Iter2_T first2) {
   double ip = inner_product(first, last, first2, 0);
   double norm1 = 0.0, norm2 = 0.0;
