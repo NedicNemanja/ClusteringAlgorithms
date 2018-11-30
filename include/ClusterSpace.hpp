@@ -7,8 +7,6 @@
 #include <vector>
 #include <map>
 
-#define MAX_NUM_RANGESEARCH_ITERATIONS 10 //2x radius this many times at most
-
 class ClusterSpace{
     std::vector<Cluster> Clusters;
     std::string init_algorithm;
@@ -27,15 +25,22 @@ class ClusterSpace{
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
     int NearestCenter(myvector &v,const std::vector<Cluster*>&,double*);
+    /*Create a CenterMap for every HashTable*/
+    void SetCenterMaps(std::vector<std::multimap<int,Cluster*>>&,std::vector<HashTable*>);
     //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
-    void MapCentersToBuckets(std::multimap<int,Cluster*> &map,HashTable*);
+    void MapCentersToBuckets(std::multimap<int,Cluster*> &map,HashTable&);
 
+    /*Run the clustering algorithms pointed by init_algorithm,assign...etc*/
     void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>);
     /*Assign vectors to their nearest center*/
     void LloydsAssignment(MyVectorContainer &vectors);
+    void LloydsAssignmentWrapper(MyVectorContainer&,std::vector<HashTable*>);
     /*Assign vectors that are unassigned to their nearest center*/
     void LloydsAssignment(MyVectorContainer &vectors,const std::string);
+    /*Assign vectors by radius, doubling it until stop criteria is met.*/
     void RangeSearchLSHAssignment(MyVectorContainer&,std::vector<HashTable*>);
+    void RangeSearchHypercubeAssignment(MyVectorContainer&,HashTable&);
+    void RangeSearchHypercubeAssignmentWrapper(MyVectorContainer&,std::vector<HashTable*>);
     /*For every vector in bucket,assign to nearest Cluster center within radius*/
     void NearestCenterAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
 };
@@ -45,4 +50,5 @@ class ClusterSpace{
 std::vector<Cluster*> GetBucketClusters(int, std::multimap<int,Cluster*> &CMap);
 /*return hashes of every center in clusters vector*/
 std::vector<int> CenterHashes(std::vector<Cluster*> &clusters, HashTable*);
+
 #endif

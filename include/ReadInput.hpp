@@ -13,6 +13,8 @@ namespace CmdArgs{
     extern std::string OutFile;
     extern std::string Metric;
     extern int K,L,number_of_clusters;
+    extern int MAX_NUM_RANGESEARCH_ITERATIONS;
+    extern int HYPERCUBE_PROBES;
 };
 
 /*Parse cmd line arguments and read from cin any that are missing*/
