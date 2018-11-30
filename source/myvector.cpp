@@ -14,16 +14,21 @@ myvector::myvector(std::vector<coord> &v, std::string &id)
 
 myvector::~myvector(){}
 
-void myvector::print(std::ostream &out){
+void myvector::print(std::ostream &out) const{
   for(size_t i=0; i<this->values.size(); i++){
     out << this->values.at(i) << " ";
   }
   //out << std::endl << "-------------------" <<  std::endl;
 }
 
-int myvector::size(){ return values.size(); }
+int myvector::size() const { return values.size(); }
 
-std::string myvector::get_id(){return id;}
+std::string myvector::get_id() const {return id;}
 
-std::vector<coord>::iterator myvector::begin(){ return values.begin(); }
-std::vector<coord>::iterator myvector::end(){ return values.end(); }
+std::vector<coord>::const_iterator myvector::begin() const {
+  return values.begin();
+}
+
+std::vector<coord>::const_iterator myvector::end() const {
+  return values.end();
+}

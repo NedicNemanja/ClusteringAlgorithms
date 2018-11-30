@@ -12,6 +12,9 @@ class ClusterSpace{
     std::string init_algorithm;
     std::string assign_algorithm;
     std::string update_algorithm;
+    //bitmap that mirrors MyVectorContainer indexing (true if vector's assigned)
+    std::vector<bool> AssignedVectorBitMap;
+    int num_assigned_vectors=0; //num of values set to true in BitMap
   public:
     ClusterSpace(MyVectorContainer&, std::string, std::string, std::string);
     ~ClusterSpace();
@@ -21,14 +24,23 @@ class ClusterSpace{
     double MinDistanceToCenterSquared(myvector &v);
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
+    int NearestCenter(myvector &v,std::vector<Cluster*>&,double*);
+    //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
+    void MapCentersToBuckets(std::multimap<int,Cluster*> &map,HashTable*);
 
-    void RunClusteringAlgorithms();
+    void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>);
+    /*Assign vectors to their nearest center*/
     void LloydsAssignment(MyVectorContainer &vectors);
+    /*Assign vectors that are unassigned to their nearest center*/
+    void LloydsAssignment(MyVectorContainer &vectors,const std::string);
     void RangeSearchLSHAssignment(MyVectorContainer&,std::vector<HashTable*>);
+    /*For every vector in bucket,assign to nearest Cluster center within radius*/
+    void NearestCenterAssign(Bucket,double,std::vector<Cluster*>&,MyVectorContainer&);
 };
 
-/*Hash centers to buckets and save that information to a multimap*/
-void HashCenters(std::multimap<int,myvector&> &hashmap,
-                 std::vector<myvector> Centers, HashTable* HTable);
 
+/*Return all the CLusters that have centers in this bucket*/
+std::vector<Cluster*> GetBucketClusters(int, std::multimap<int,Cluster*> &CMap);
+/*return hashes of every center in clusters vector*/
+std::vector<int> CenterHashes(std::vector<Cluster*> &clusters, HashTable*);
 #endif

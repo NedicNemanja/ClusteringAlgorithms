@@ -15,11 +15,11 @@ class myvector {
     myvector(const myvector& obj);
     myvector(std::vector<coord> &v, std::string &id);
     ~myvector();
-    void print(std::ostream &out);
-    int size();
-    std::string get_id();
-    std::vector<coord>::iterator begin();
-    std::vector<coord>::iterator end();
+    void print(std::ostream &out) const;
+    int size() const;
+    std::string get_id() const;
+    std::vector<coord>::const_iterator begin() const;
+    std::vector<coord>::const_iterator end() const;
 };
 
 typedef std::vector<myvector> MyVectorContainer;

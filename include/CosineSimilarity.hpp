@@ -15,14 +15,14 @@ class CosineSimilarity: public Metric{
     CosineSimilarity(int dim);
     ~CosineSimilarity();
     void SetRandRvectors(int d);
-    unsigned int Hash(myvector &p);
-    int get_h(int i,myvector &p);
+    unsigned int Hash(const myvector &p);
+    int get_h(int i,const myvector &p);
     int dim();
     std::vector<long int> get_g(myvector &p);
     //cosine vector distance
-    double vectorDistance(std::vector<coord>::iterator first,
-                          std::vector<coord>::iterator last,
-                          std::vector<coord>::iterator first2);
+    double vectorDistance(std::vector<coord>::const_iterator first,
+                          std::vector<coord>::const_iterator last,
+                          std::vector<coord>::const_iterator first2);
 };
 
 #endif

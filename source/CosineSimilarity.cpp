@@ -31,7 +31,7 @@ void CosineSimilarity::SetRandRvectors(int d){
   }
 }
 
-unsigned int CosineSimilarity::Hash(myvector& p){
+unsigned int CosineSimilarity::Hash(const myvector& p){
   unsigned int result=0;
   for(int i=0; i<CmdArgs::K; i++){  //overflow danger in case 2^k>uint size
     result <<= 1;         ///shift to make room for new lsb
@@ -40,7 +40,7 @@ unsigned int CosineSimilarity::Hash(myvector& p){
   return result;
 }
 
-int CosineSimilarity::get_h(int i,myvector &p){
+int CosineSimilarity::get_h(int i,const myvector &p){
   double prod = inner_product(p.begin(), p.end(),r_vectors[i].begin(),(coord)0);
   return prod >= 0 ? 1 : 0;
 }
@@ -56,9 +56,9 @@ std::vector<long int> CosineSimilarity::get_g(myvector &p){
 int CosineSimilarity::dim(){ return dimension; }
 
 
-double CosineSimilarity::vectorDistance(std::vector<coord>::iterator first,
-                                        std::vector<coord>::iterator last,
-                                        std::vector<coord>::iterator first2)
+double CosineSimilarity::vectorDistance(std::vector<coord>::const_iterator first,
+                                        std::vector<coord>::const_iterator last,
+                                        std::vector<coord>::const_iterator first2)
 {
   return CosineVectorDistance(first,last,first2);
 }

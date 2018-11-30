@@ -12,7 +12,8 @@ using namespace std;
 
 ClusterSpace::ClusterSpace(MyVectorContainer &vectors,string init,
 string assign, string update)
-:init_algorithm(init),assign_algorithm(assign),update_algorithm(update)
+:init_algorithm(init),assign_algorithm(assign),update_algorithm(update),
+AssignedVectorBitMap(vectors.size(),false)
 {
   cout<<"Starting "<<init<<" | "<<assign<<" | "<<update<<endl;
   if(init_algorithm == "Random"){
@@ -104,9 +105,10 @@ int ClusterSpace::NearestCenter(myvector &v){
   //find distance to first center and set it as min
   int nearest_center_pos=0;
   double min_dist=EuclideanVectorDistance(v.begin(),v.end(),centers[0].begin());
+  double dist;
   for(int i=1; i<centers.size(); i++){
     //for all next distances find the smallest
-    double dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
+    dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
     if(min_dist> dist){
       min_dist = dist;
       nearest_center_pos = i;
@@ -114,54 +116,128 @@ int ClusterSpace::NearestCenter(myvector &v){
   }
   return nearest_center_pos;
 }
+//Overloaded
+int ClusterSpace::NearestCenter(myvector &v,vector<Cluster*> &clusters,
+  double* min_dist){
+  //find distance to first center and set it as min
+  int nearest_center_pos=0;
+  *min_dist=EuclideanVectorDistance(v.begin(),v.end(),
+                                    clusters[0]->getCenter().begin());
+  double dist;
+  for(int i=1; i<clusters.size(); i++){
+    //for all next distances find the smallest
+    dist = EuclideanVectorDistance( v.begin(),v.end(),
+                                    clusters[i]->getCenter().begin());
+    if(*min_dist > dist){
+      *min_dist = dist;
+      nearest_center_pos = i;
+    }
+  }
+  return nearest_center_pos;
+}
 
-
-void RunClusteringAlgorithms(){
-
+void ClusterSpace::RunClusteringAlgorithms(MyVectorContainer &vectors,
+vector<HashTable*> HTables){
+  void (ClusterSpace::*assign_func)(MyVectorContainer&,vector<HashTable*>);
+  void (ClusterSpace::*update_func)(MyVectorContainer&,vector<HashTable*>);
   if(assign_algorithm == "Llyod's"){
-
+    //assign_func = &ClusterSpace::LloydsAssignment;
   }
   if(assign_algorithm == "RangeSearchLSH"){
-
+    assign_func = &ClusterSpace::RangeSearchLSHAssignment;
   }
   if(assign_algorithm == "RangeSearchHypercube"){
 
   }
 
+
+  bool stop_criteria_met=false;
+  while(stop_criteria_met == false){
+  //  (this->*assign_func)(vectors,HTables);
+    //(this->*update_func)(vectors,HTables);
+  }
 }
 
 /*Assign vectors to their nearest center*/
 void ClusterSpace::LloydsAssignment(MyVectorContainer &vectors){
-  for(vector_index i=0; i<vectors.size(); i++){
-    if(isCenter(vectors[i])) continue;
-    Clusters[NearestCenter(vectors[i])].AddVector(i);
+  for(int index=0,size=vectors.size(); index<size; index++){
+    if(isCenter(vectors[index])) continue;
+    Clusters[NearestCenter(vectors[index])].AddVector(index);
+  }
+}
+
+/*Assign vectors that are unassigned to their nearest center*/
+void ClusterSpace::LloydsAssignment(MyVectorContainer &vectors, const string s){
+  for(int index=0,size=vectors.size(); index<size; index++){
+    if(AssignedVectorBitMap[index]) continue; //already assigned
+    if(isCenter(vectors[index])) continue;  //dont assigng a center
+    Clusters[NearestCenter(vectors[index])].AddVector(index);
+    AssignedVectorBitMap[index] = true;
+    num_assigned_vectors++;
   }
 }
 
 void ClusterSpace::RangeSearchLSHAssignment(MyVectorContainer &vectors,
-                                            vector<HashTable*> HTables)
-{
-  double range = MinDistanceBetweenCenters()/2;
-  //bitmap that mirrors MyVectorContainer indexing (true if vector's assigned)
-  vector<bool> AssignedVectorBitMap(vectors.size(),false);
-  int num_assigned_vectors=0;
+  vector<HashTable*> HTables){
+  double radius = MinDistanceBetweenCenters()/2;
 
   while(num_assigned_vectors<vectors.size() /*&& colision_num<max_colisions*/
-      /*&& no center changed*/ /*&& range>=max_range*/){
-    //(Re)Assign centers
-
+  /*&& no center changed*/ /*&& range>=max_range*/){
     //detect colisions between centers
     //range search for every hashtable
     for(auto htable=HTables.begin(); htable!=HTables.end(); htable++){
-      //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
-      multimap<int,myvector&> CenterMap;
-      HashCenters(CenterMap,getCenters(),*htable);
+      //multiple centers can map to one bucket. multimap:(bucket_hash->cluster)
+      multimap<int,Cluster*> CenterMap;
+      MapCentersToBuckets(CenterMap,*htable);
       //range search for every bucket
-
+      for(int b_hash; b_hash<(*htable)->num_buckets(); b_hash++){
+        int count=CenterMap.count(b_hash);
+        if(count == 1){ //one center, do normal range search inside bucket
+          //get cluster that is centered in this bucket
+          pair<multimap<int,Cluster*>::iterator,
+          multimap<int,Cluster*>::iterator> ret=CenterMap.equal_range(b_hash);
+          Cluster* cluster = (ret.first)->second;
+          //range search in bucket
+          vector<vector_index> results=(*htable)->RangeSearch(b_hash,
+          cluster->getCenter(),radius,vectors,AssignedVectorBitMap);
+          //assign results to cluster
+          for(auto res=results.begin(); res!=results.end(); res++){
+            if(isCenter(vectors[*res])) continue; //dont assign a center
+            cluster->AddVector(*res);
+            AssignedVectorBitMap[*res] = true;
+            num_assigned_vectors++;
+          }
+        }
+        else if(count > 1){ //more than one centers in bucket
+          /*assign to nearest Cluster center within radius*/
+          vector<Cluster*> bucketClusters = GetBucketClusters(b_hash,CenterMap);
+          NearestCenterAssign((*htable)->get_bucket_at(b_hash),radius,
+                              bucketClusters,vectors);
+        }
+      }
     }
-    range*=2;
+    radius*=2;
   }
+  //everything that left unassigned assign with Llyod's
+  LloydsAssignment(vectors,"assign leftovers");
+}
 
+void ClusterSpace::NearestCenterAssign(Bucket bucket,double radius,
+  vector<Cluster*> &clusters,MyVectorContainer &vectors){
+  //for every vector of the bucket
+  for(auto it=bucket.begin(); it!=bucket.end(); it++){
+    if(AssignedVectorBitMap[*it]) continue;
+    if(isCenter(vectors[*it])) continue;
+    //find nearest center
+    double min_dist;
+    int pos = NearestCenter(vectors[*it],clusters,&min_dist);
+    //if within radius and if they indeed have the same Hash: assign
+    if(min_dist<radius){
+      clusters[pos]->AddVector(*it);
+      AssignedVectorBitMap[*it] = true;
+      num_assigned_vectors++;
+    }
+  }
 }
 
 double ClusterSpace::MinDistanceBetweenCenters(){
@@ -186,13 +262,33 @@ double ClusterSpace::MinDistanceBetweenCenters(){
   return min_dist;
 }
 
-
-
-/************Non_Members*******************************************************/
-void HashCenters(multimap<int,myvector&> &hashmap, vector<myvector> Centers,
-HashTable* HTable){
-  for(auto it=Centers.begin(); it!=Centers.end(); it++){
-    int hash = HTable->get_hash(*it);
-    hashmap.insert(std::pair<int,myvector&>(hash,*it));
+//multiple centers can map to one bucket. multimap:(bucket_hash->centers)
+void ClusterSpace::MapCentersToBuckets(multimap<int,Cluster*> &hashmap,
+  HashTable* HTable){
+  for(auto c=Clusters.begin(); c!=Clusters.end(); c++){
+    myvector center = c->getCenter();
+    int hash = HTable->get_hash(center);
+    hashmap.insert(std::pair<int,Cluster*>(hash,&(*c)));
   }
+}
+
+/*Return all the CLusters that have centers in this bucket*/
+vector<Cluster*> GetBucketClusters(int b_hash, multimap<int,Cluster*> &CMap){
+  vector<Cluster*> clusters;
+  //get elements from map with b_hash key
+  pair<multimap<int,Cluster*>::iterator,multimap<int,Cluster*>::iterator>
+  element_range = CMap.equal_range(b_hash);
+  for(auto it=element_range.first; it!=element_range.second; it++){
+    clusters.push_back((*it).second);
+  }
+  return clusters;
+}
+
+/*return hashes of every center in clusters vector*/
+vector<int> CenterHashes(vector<Cluster*> &clusters, HashTable* HTable){
+  vector<int> result(clusters.size());
+  for(int i=0; i<clusters.size(); i++){
+    result[i] = HTable->get_hash(clusters[i]->getCenter());
+  }
+  return result;
 }

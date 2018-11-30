@@ -65,7 +65,7 @@ void LSH::Euclidean::SetRandT(){
   }
 }
 
-unsigned int LSH::Euclidean::Hash(myvector& p){
+unsigned int LSH::Euclidean::Hash(const myvector& p){
   long int f=0;
   for(int i=0; i<CmdArgs::K; i++){
     long int ip = this->get_h(i,p);
@@ -77,7 +77,7 @@ unsigned int LSH::Euclidean::Hash(myvector& p){
   return MOD(f,tablesize);
 }
 
-long int LSH::Euclidean::get_h(int i, myvector& p){
+long int LSH::Euclidean::get_h(int i,const myvector& p){
   double pv_inner = inner_product(p.begin(),p.end(),vectors[i].begin(),(coord)0)
                     *IP_COEFFICIENT;
 /*  cout << "inner_product of ";
@@ -101,9 +101,9 @@ int LSH::Euclidean::dim(){
   return dimension;
 }
 
-double LSH::Euclidean::vectorDistance(std::vector<coord>::iterator first,
-                                std::vector<coord>::iterator last,
-                                std::vector<coord>::iterator first2)
+double LSH::Euclidean::vectorDistance(std::vector<coord>::const_iterator first,
+                                      std::vector<coord>::const_iterator last,
+                                      std::vector<coord>::const_iterator first2)
 {
   return EuclideanVectorDistance(first,last,first2);
 }

@@ -48,7 +48,7 @@ void Hypercube::Euclidean::SetRandT(){
   }
 }
 
-unsigned int Hypercube::Euclidean::Hash(myvector &p){
+unsigned int Hypercube::Euclidean::Hash(const myvector &p){
   random_device generator;
   uniform_int_distribution<int> distribution(0,1);
   unsigned int result=0;
@@ -65,7 +65,7 @@ unsigned int Hypercube::Euclidean::Hash(myvector &p){
   return result;
 }
 
-int Hypercube::Euclidean::get_h(int i, myvector& p){
+int Hypercube::Euclidean::get_h(int i,const myvector& p){
   double pv_inner = inner_product(p.begin(),p.end(),vectors[i].begin(),(coord)0)
                     *IP_COEFFICIENT;
 /*  cout << "inner_product of ";
@@ -89,10 +89,9 @@ int Hypercube::Euclidean::dim(){
   return dimension;
 }
 
-double Hypercube::Euclidean::vectorDistance(std::vector<coord>::iterator first,
-                                std::vector<coord>::iterator last,
-                                std::vector<coord>::iterator first2)
+double Hypercube::Euclidean::vectorDistance(std::vector<coord>::const_iterator first,
+                                        std::vector<coord>::const_iterator last,
+                                        std::vector<coord>::const_iterator first2)
 {
-  double dist = EuclideanVectorDistance(first,last,first2);
-  return dist;
+  return EuclideanVectorDistance(first,last,first2);
 }

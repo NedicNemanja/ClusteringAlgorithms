@@ -137,6 +137,9 @@ Bucket HashTable::get_bucket(myvector& v){
   return buckets[metric->Hash(v)];
 }
 
+int HashTable::num_buckets(){
+  return buckets.size();
+}
 /*Find in which bucket q should belong
 and filter out any vectors with a different g*/
 Bucket HashTable::get_bucket_filtered(MyVectorContainer &vectors, myvector& q){
@@ -154,6 +157,13 @@ Bucket HashTable::get_bucket_filtered(MyVectorContainer &vectors, myvector& q){
         result.push_back(vindex);
   }
   return result;
+}
+
+/*Check if two vectors have the same hash.*/
+bool HashTable::CompareHashes(myvector& q, myvector& p){
+  std::vector<long int> g_of_q = metric->get_g(q);
+  std::vector<long int> g_of_p = metric->get_g(p);
+  return vectorCompare(g_of_q,g_of_p);
 }
 
 /*get bucket at pos*/
@@ -175,6 +185,29 @@ void HashTable::PrintBuckets(){
 }
 
 /*Get the hash value for p*/
-int HashTable::get_hash(myvector &p){
+int HashTable::get_hash(const myvector &p){
   return metric->Hash(p);
+}
+
+/*Return all index to vectors of the bucket that are in the range of center.
+Returns only unassigned vectors indexes*/
+vector<vector_index> HashTable::RangeSearch(int b, myvector center,
+  double radius, MyVectorContainer &vectors,vector<bool> &AssignedVectorBitMap){
+  vector<vector_index> results;
+  //find corresponding bucket (and filter for g's in case of euclidean)
+  Bucket bucket;
+  if(metric->name != "euclidean")
+    bucket = get_bucket_filtered(vectors,center);
+  else
+    bucket = get_bucket_at(b);
+  //for each p in bucket
+  double dist;
+  for(auto v=bucket.begin(); v != bucket.end(); v++){
+    if(AssignedVectorBitMap[*v]) continue;  //already assigned
+    dist=metric->vectorDistance(center.begin(),center.end(),vectors[*v].begin());
+    if( dist < radius){
+      results.push_back(*v);
+    }
+  }
+  return results;
 }
