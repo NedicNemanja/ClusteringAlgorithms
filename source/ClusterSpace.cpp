@@ -66,8 +66,8 @@ vector<myvector> ClusterSpace::getCenters(){
   return result;
 }
 
-bool ClusterSpace::isCenter(myvector &p){
-  for(vector<Cluster>::iterator it=Clusters.begin(); it!=Clusters.end(); it++){
+bool ClusterSpace::isCenter(const myvector &p){
+  for(auto it=Clusters.begin(); it!=Clusters.end(); it++){
     if(p.get_id() == it->getCenter().get_id()){ //if same id as center
       return true;
     }
@@ -76,7 +76,7 @@ bool ClusterSpace::isCenter(myvector &p){
 }
 
 void ClusterSpace::Print(){
-  for(vector<Cluster>::iterator it=Clusters.begin(); it!=Clusters.end(); it++){
+  for(auto it=Clusters.begin(); it!=Clusters.end(); it++){
     it->Print();
   }
 }
@@ -117,12 +117,12 @@ int ClusterSpace::NearestCenter(myvector &v){
   return nearest_center_pos;
 }
 //Overloaded
-int ClusterSpace::NearestCenter(myvector &v,vector<Cluster*> &clusters,
+int ClusterSpace::NearestCenter(myvector &v,const vector<Cluster*> &clusters,
   double* min_dist){
   //find distance to first center and set it as min
   int nearest_center_pos=0;
-  *min_dist=EuclideanVectorDistance(v.begin(),v.end(),
-                                    clusters[0]->getCenter().begin());
+  *min_dist = EuclideanVectorDistance(v.begin(),v.end(),
+                                      clusters[0]->getCenter().begin());
   double dist;
   for(int i=1; i<clusters.size(); i++){
     //for all next distances find the smallest
@@ -180,10 +180,10 @@ void ClusterSpace::LloydsAssignment(MyVectorContainer &vectors, const string s){
 void ClusterSpace::RangeSearchLSHAssignment(MyVectorContainer &vectors,
   vector<HashTable*> HTables){
   double radius = MinDistanceBetweenCenters()/2;
+  int iteration=0;
 
-  while(num_assigned_vectors<vectors.size() /*&& colision_num<max_colisions*/
-  /*&& no center changed*/ /*&& range>=max_range*/){
-    //detect colisions between centers
+  while(num_assigned_vectors<vectors.size() &&
+  iteration<MAX_NUM_RANGESEARCH_ITERATIONS){
     //range search for every hashtable
     for(auto htable=HTables.begin(); htable!=HTables.end(); htable++){
       //multiple centers can map to one bucket. multimap:(bucket_hash->cluster)
@@ -210,9 +210,8 @@ void ClusterSpace::RangeSearchLSHAssignment(MyVectorContainer &vectors,
         }
         else if(count > 1){ //more than one centers in bucket
           /*assign to nearest Cluster center within radius*/
-          vector<Cluster*> bucketClusters = GetBucketClusters(b_hash,CenterMap);
           NearestCenterAssign((*htable)->get_bucket_at(b_hash),radius,
-                              bucketClusters,vectors);
+                              GetBucketClusters(b_hash,CenterMap),vectors);
         }
       }
     }
@@ -223,7 +222,7 @@ void ClusterSpace::RangeSearchLSHAssignment(MyVectorContainer &vectors,
 }
 
 void ClusterSpace::NearestCenterAssign(Bucket bucket,double radius,
-  vector<Cluster*> &clusters,MyVectorContainer &vectors){
+  const vector<Cluster*> &clusters,MyVectorContainer &vectors){
   //for every vector of the bucket
   for(auto it=bucket.begin(); it!=bucket.end(); it++){
     if(AssignedVectorBitMap[*it]) continue;
@@ -266,8 +265,7 @@ double ClusterSpace::MinDistanceBetweenCenters(){
 void ClusterSpace::MapCentersToBuckets(multimap<int,Cluster*> &hashmap,
   HashTable* HTable){
   for(auto c=Clusters.begin(); c!=Clusters.end(); c++){
-    myvector center = c->getCenter();
-    int hash = HTable->get_hash(center);
+    int hash = HTable->get_hash(c->getCenter());
     hashmap.insert(std::pair<int,Cluster*>(hash,&(*c)));
   }
 }

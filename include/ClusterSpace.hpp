@@ -7,6 +7,8 @@
 #include <vector>
 #include <map>
 
+#define MAX_NUM_RANGESEARCH_ITERATIONS 10 //2x radius this many times at most
+
 class ClusterSpace{
     std::vector<Cluster> Clusters;
     std::string init_algorithm;
@@ -20,11 +22,11 @@ class ClusterSpace{
     ~ClusterSpace();
     std::vector<myvector> getCenters();
     void Print();
-    bool isCenter(myvector &p);
+    bool isCenter(const myvector &p);
     double MinDistanceToCenterSquared(myvector &v);
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
-    int NearestCenter(myvector &v,std::vector<Cluster*>&,double*);
+    int NearestCenter(myvector &v,const std::vector<Cluster*>&,double*);
     //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
     void MapCentersToBuckets(std::multimap<int,Cluster*> &map,HashTable*);
 
@@ -35,7 +37,7 @@ class ClusterSpace{
     void LloydsAssignment(MyVectorContainer &vectors,const std::string);
     void RangeSearchLSHAssignment(MyVectorContainer&,std::vector<HashTable*>);
     /*For every vector in bucket,assign to nearest Cluster center within radius*/
-    void NearestCenterAssign(Bucket,double,std::vector<Cluster*>&,MyVectorContainer&);
+    void NearestCenterAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
 };
 
 
