@@ -28,21 +28,22 @@ class ClusterSpace{
     /*Create a CenterMap for every HashTable*/
     void SetCenterMaps(std::vector<std::multimap<int,Cluster*>>&,std::vector<HashTable*>);
     //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
-    void MapCentersToBuckets(std::multimap<int,Cluster*> &map,HashTable&);
-
+    std::multimap<int,Cluster*> MapCentersToBuckets(HashTable&);
+    //Overloaded so that a center within hamming_dist is mapped to a bucket
+    std::multimap<int,Cluster*> MapCentersToBuckets(HashTable&,int hamm_dist);
     /*Run the clustering algorithms pointed by init_algorithm,assign...etc*/
     void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>);
     /*Assign vectors to their nearest center*/
-    void LloydsAssignment(MyVectorContainer &vectors);
-    void LloydsAssignmentWrapper(MyVectorContainer&,std::vector<HashTable*>);
+    void LloydsAssign(MyVectorContainer &vectors);
+    void LloydsAssignWrapper(MyVectorContainer&,std::vector<HashTable*>);
     /*Assign vectors that are unassigned to their nearest center*/
-    void LloydsAssignment(MyVectorContainer &vectors,const std::string);
+    void LloydsAssign(MyVectorContainer &vectors,const std::string);
     /*Assign vectors by radius, doubling it until stop criteria is met.*/
-    void RangeSearchLSHAssignment(MyVectorContainer&,std::vector<HashTable*>);
-    void RangeSearchHypercubeAssignment(MyVectorContainer&,HashTable&);
-    void RangeSearchHypercubeAssignmentWrapper(MyVectorContainer&,std::vector<HashTable*>);
+    void RangeSearchLSHAssign(MyVectorContainer&,std::vector<HashTable*>);
+    void RangeSearchHypercubeAssign(MyVectorContainer&,HashTable&);
+    void RangeSearchHypercubeAssignWrapper(MyVectorContainer&,std::vector<HashTable*>);
     /*For every vector in bucket,assign to nearest Cluster center within radius*/
-    void NearestCenterAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
+    void NearestCenterRangeAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
 };
 
 

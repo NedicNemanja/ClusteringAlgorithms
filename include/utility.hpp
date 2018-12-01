@@ -34,7 +34,7 @@ bool vectorCompare(std::vector<T> &A, std::vector<T> &B){
 
 /*Get all bit strings that have a binary-hamming-distance=1 from n
 (CmdArgs::K is the lenght/number of bits)*/
-std::vector<int> HammingNeighbors(int n, int k, int hamming_distance=1);
+std::vector<int> HammingNeighbors(int n, int len, int hamming_distance=1);
 
 /************Most of the below were found on the internet #CodeReuse***********/
 template<class Iter_T, class Iter2_T>
