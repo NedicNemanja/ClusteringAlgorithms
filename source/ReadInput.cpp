@@ -16,8 +16,9 @@ namespace CmdArgs{
     std::string OutFile;
     std::string Metric;
     int number_of_clusters,L,K;
-    int MAX_NUM_RANGESEARCH_ITERATIONS;
+    int RANGESEARCH_ITERATIONS;
     int HYPERCUBE_PROBES;
+    int dimension;
 };
 
 /*Parse cmd line arguments and read from cin any that are missing*/
@@ -76,7 +77,8 @@ void ParseArguments(int argc, char** argv){
 }
 
 void ReadConfigurationFile(std::string filename){
-  int clusters_flag=0,hash_func_flag=0,hashtables_flag=0;
+  int clusters_flag=0, hash_func_flag=0, hashtables_flag=0, dimension_flag=0,
+  hypercube_probes_flag=0, rangesearch_iterations_flag=0;
   ifstream file = OpenInFile(filename);
   string field_name;
   while(!file.eof()){
@@ -101,6 +103,30 @@ void ReadConfigurationFile(std::string filename){
       if(!file.eof()){
         file >> CmdArgs::L;
         hashtables_flag=1;
+        field_name.clear();
+        continue;
+      }
+    }
+    if(field_name == "rangesearch_iterations:"){
+      if(!file.eof()){
+        file >> CmdArgs::RANGESEARCH_ITERATIONS;
+        rangesearch_iterations_flag=1;
+        field_name.clear();
+        continue;
+      }
+    }
+    if(field_name == "hypercube_probes:"){
+      if(!file.eof()){
+        file >> CmdArgs::HYPERCUBE_PROBES;
+        hypercube_probes_flag=1;
+        field_name.clear();
+        continue;
+      }
+    }
+    if(field_name == "dimension:"){
+      if(!file.eof()){
+        file >> CmdArgs::dimension;
+        dimension_flag=1;
         field_name.clear();
         continue;
       }

@@ -17,6 +17,21 @@ double ExhaustiveSearch(std::list<myvector> &vlist, myvector &q, double* dist);
 unsigned int MOD(long int a , long int b);
 double MOD(double a , double b);
 
+template<typename T>
+void AddVector(std::vector<T> &dest, const std::vector<T> &from){
+  for(int i=0; i<dest.size(); i++){
+    dest[i] += from[i];
+  }
+}
+
+template<typename T,typename D>
+void DivVector(std::vector<T> &dest, D divisor){
+  for(int i=0; i<dest.size(); i++){
+    dest[i] /= divisor;
+  }
+}
+
+
 template<class T>
 bool vectorCompare(std::vector<T> &A, std::vector<T> &B){
   typename std::vector<T>::iterator Aiter = A.begin();

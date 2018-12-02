@@ -11,9 +11,11 @@ class Cluster{
     //vector_indexes of points that belong to the cluster, excluding centers
     std::vector<vector_index> members;
   public:
-    Cluster(myvector center);
+    Cluster(myvector &center);
     ~Cluster();
     myvector getCenter();
+    std::vector<vector_index> getMembers();
+    void setCenter(myvector &c);
     void Print();
     void AddVector(vector_index vindex);
 };

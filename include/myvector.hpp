@@ -14,10 +14,12 @@ class myvector {
     myvector();
     myvector(const myvector& obj);
     myvector(std::vector<coord> &v, std::string &id);
+    myvector(std::vector<coord> &v);  //empty id
     ~myvector();
     void print(std::ostream &out) const;
     int size() const;
     std::string get_id() const;
+    std::vector<coord> getCoords() const;
     std::vector<coord>::const_iterator begin() const;
     std::vector<coord>::const_iterator end() const;
 };

@@ -9,7 +9,6 @@
 #include "ClusterSpace.hpp"
 #include "myvector.hpp" //so i can set AllVectors
 
-#define dimension 203
 
 using namespace std;
 void SetAlgorithmChoices(int i,string &init, string &assign,string &update);
@@ -20,16 +19,16 @@ int main(int argc, char** argv){
   //open input file
   ifstream data = OpenInFile(CmdArgs::InputFile);
   //read data from file
-  AllVectors = ReadDataset(data,dimension);
+  AllVectors = ReadDataset(data,CmdArgs::dimension);
   cout << "Read input set of " << AllVectors.size() << "vectors" << endl;
   data.close();
   //Initialize Hashtables
   vector<HashTable*> LSH_Hashtables(CmdArgs::L);
   for(int i=0; i<CmdArgs::L; i++){
-    LSH_Hashtables[i]=new HashTable(AllVectors,CmdArgs::Metric,dimension,"lsh");
+    LSH_Hashtables[i]=new HashTable(AllVectors,CmdArgs::Metric,CmdArgs::dimension,"lsh");
     //LSH_Hashtables[i]->PrintBuckets();
   }
-  HashTable HypercubeHashtable(AllVectors,CmdArgs::Metric,dimension,"hypercube");
+  HashTable HypercubeHashtable(AllVectors,CmdArgs::Metric,CmdArgs::dimension,"hypercube");
   //HypercubeHashtable.PrintBuckets();
   //open outfile
   if(CmdArgs::OutFile.empty()){

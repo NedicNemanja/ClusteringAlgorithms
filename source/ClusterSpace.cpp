@@ -190,7 +190,7 @@ void ClusterSpace::RangeSearchLSHAssign(MyVectorContainer &vectors,
   SetCenterMaps(CenterMaps,HTables);
 
   while(num_assigned_vectors<vectors.size() &&
-  iteration<CmdArgs::MAX_NUM_RANGESEARCH_ITERATIONS){
+  iteration<CmdArgs::RANGESEARCH_ITERATIONS){
     //range search for every hashtable
     for(int i=0; i<HTables.size(); i++){
       //range search for every bucket
@@ -237,7 +237,7 @@ void ClusterSpace::RangeSearchHypercubeAssign(MyVectorContainer &vectors,
 
   /****************check the buckets centers are in themselves**********/
   while(num_assigned_vectors<vectors.size() &&
-  iteration<CmdArgs::MAX_NUM_RANGESEARCH_ITERATIONS){
+  iteration<CmdArgs::RANGESEARCH_ITERATIONS){
     //range search for every bucket
     for(int b_hash; b_hash<htable.num_buckets(); b_hash++){
       int count=CenterMap.count(b_hash);
@@ -269,12 +269,6 @@ void ClusterSpace::RangeSearchHypercubeAssign(MyVectorContainer &vectors,
   LloydsAssign(vectors,"assign leftovers");
 }
 
-void ClusterSpace::RangeSearchHypercubeAssignWrapper(MyVectorContainer
-  &vectors,std::vector<HashTable*> HTable){
-  RangeSearchHypercubeAssign(vectors,*(HTable[0]));
-}
-
-
 void ClusterSpace::NearestCenterRangeAssign(Bucket bucket,double radius,
   const vector<Cluster*> &clusters,MyVectorContainer &vectors){
   //for every vector of the bucket
@@ -290,6 +284,29 @@ void ClusterSpace::NearestCenterRangeAssign(Bucket bucket,double radius,
       AssignedVectorBitMap[*it] = true;
       num_assigned_vectors++;
     }
+  }
+}
+
+void ClusterSpace::K_means(MyVectorContainer &vectors){
+  //for every cluster
+  for(auto cluster=Clusters.begin(); cluster!=Clusters.end(); cluster++){
+    vector<coord> mean(CmdArgs::dimension,0);
+    vector<vector_index> members = cluster->getMembers();
+    //add all members to mean
+    for(auto member=members.begin(); member!=members.end(); member++){
+      AddVector(mean,vectors[*member].getCoords());
+    }
+    //if center has id, then its part of the dataset and a member of the cluster
+    myvector center = cluster->getCenter();
+    if(!center.get_id().empty()){
+      AddVector(mean,center.getCoords()); //add center to mean
+      DivVector(mean,members.size()+1); //divide mean
+    }
+    else
+      DivVector(mean,members.size()); //divide means
+    //set mean as new center
+    myvector new_center(mean);
+    cluster->setCenter(new_center);
   }
 }
 
@@ -315,6 +332,11 @@ double ClusterSpace::MinDistanceBetweenCenters(){
   }
   return min_dist;
 }
+
+void ClusterSpace::RangeSearchHypercubeAssignWrapper(MyVectorContainer
+  &vectors,std::vector<HashTable*> HTable){
+    RangeSearchHypercubeAssign(vectors,*(HTable[0]));
+  }
 
 /*return hashes of every center in clusters vector*/
 vector<int> CenterHashes(vector<Cluster*> &clusters, HashTable* HTable){

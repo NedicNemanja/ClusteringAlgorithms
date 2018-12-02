@@ -12,6 +12,9 @@ myvector::myvector(const myvector& obj)
 myvector::myvector(std::vector<coord> &v, std::string &id)
 :values(v), id(id) {}
 
+myvector::myvector(std::vector<coord> &v)
+:values(v), id("") {}
+
 myvector::~myvector(){}
 
 void myvector::print(std::ostream &out) const{
@@ -24,6 +27,8 @@ void myvector::print(std::ostream &out) const{
 int myvector::size() const { return values.size(); }
 
 std::string myvector::get_id() const {return id;}
+
+std::vector<coord> myvector::getCoords() const { return values;}
 
 std::vector<coord>::const_iterator myvector::begin() const {
   return values.begin();

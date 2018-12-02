@@ -44,6 +44,8 @@ class ClusterSpace{
     void RangeSearchHypercubeAssignWrapper(MyVectorContainer&,std::vector<HashTable*>);
     /*For every vector in bucket,assign to nearest Cluster center within radius*/
     void NearestCenterRangeAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
+    /*Calculate mean vector of the  every cluster and set it as the new center*/
+    void K_means(MyVectorContainer &vectors);
 };
 
 
