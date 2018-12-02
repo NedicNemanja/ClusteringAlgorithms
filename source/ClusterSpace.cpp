@@ -79,80 +79,25 @@ void ClusterSpace::Print(){
   }
 }
 
-/*Return the min distance to any center in the Cluster Space*/
-double ClusterSpace::MinDistanceToCenterSquared(myvector &v){
-  //get all centers
-  vector<myvector> centers = getCenters();
-  //find distance to first center and set it as min
-  double min_dist=
-  EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[0].begin()),dist;
-  for(int i=1; i<centers.size(); i++){
-    //for all next distances find the smallest
-    dist = EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[i].begin());
-    if(min_dist> dist){
-      min_dist = dist;
-    }
-  }
-  return min_dist;
-}
-
-/*Return the position of nearest center in the Cluster Space "Clusters" vector*/
-int ClusterSpace::NearestCenter(myvector &v){
-  //get all centers
-  vector<myvector> centers = getCenters();
-  //find distance to first center and set it as min
-  int nearest_center_pos=0;
-  double min_dist=EuclideanVectorDistance(v.begin(),v.end(),centers[0].begin());
-  double dist;
-  for(int i=1; i<centers.size(); i++){
-    //for all next distances find the smallest
-    dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
-    if(min_dist> dist){
-      min_dist = dist;
-      nearest_center_pos = i;
-    }
-  }
-  return nearest_center_pos;
-}
-//Overloaded
-int ClusterSpace::NearestCenter(myvector &v,const vector<Cluster*> &clusters,
-  double* min_dist){
-  //find distance to first center and set it as min
-  int nearest_center_pos=0;
-  *min_dist = EuclideanVectorDistance(v.begin(),v.end(),
-                                      clusters[0]->getCenter().begin());
-  double dist;
-  for(int i=1; i<clusters.size(); i++){
-    //for all next distances find the smallest
-    dist = EuclideanVectorDistance( v.begin(),v.end(),
-                                    clusters[i]->getCenter().begin());
-    if(*min_dist > dist){
-      *min_dist = dist;
-      nearest_center_pos = i;
-    }
-  }
-  return nearest_center_pos;
-}
-
 void ClusterSpace::RunClusteringAlgorithms(MyVectorContainer &vectors,
 vector<HashTable*> HTables){
   void (ClusterSpace::*assign_func)(MyVectorContainer&,std::vector<HashTable*>);
-  void (ClusterSpace::*update_func)(MyVectorContainer&,vector<HashTable*>);
+  void (ClusterSpace::*update_func)(MyVectorContainer&);
   if(assign_algorithm == "Llyod's")
     assign_func = &ClusterSpace::LloydsAssignWrapper;
   if(assign_algorithm == "RangeSearchLSH")
     assign_func = &ClusterSpace::RangeSearchLSHAssign;
   if(assign_algorithm == "RangeSearchHypercube")
     assign_func = &ClusterSpace::RangeSearchHypercubeAssignWrapper;
-  //if(update_algorithm == "K-means")
-    //update_func =
+  if(update_algorithm == "K-means")
+    update_func = &ClusterSpace::K_means;
   //if(update_algorithm == "PAM")
     //update_func =
 
   bool stop_criteria_met = false;
   while(stop_criteria_met == false){
     (this->*assign_func)(vectors,HTables);
-    //(this->*update_func)(vectors,HTables);
+    (this->*update_func)(vectors);
   }
 }
 
@@ -162,11 +107,6 @@ void ClusterSpace::LloydsAssign(MyVectorContainer &vectors){
     if(isCenter(vectors[index])) continue;
     Clusters[NearestCenter(vectors[index])].AddVector(index);
   }
-}
-
-void ClusterSpace::LloydsAssignWrapper(MyVectorContainer &vectors,
-  std::vector<HashTable*> mocktable){
-  LloydsAssign(vectors);
 }
 
 /*Assign vectors that are unassigned to their nearest center*/
@@ -310,6 +250,62 @@ void ClusterSpace::K_means(MyVectorContainer &vectors){
   }
 }
 
+/***********************Utility**********************************************/
+
+/*Return the min distance to any center in the Cluster Space*/
+double ClusterSpace::MinDistanceToCenterSquared(myvector &v){
+  //get all centers
+  vector<myvector> centers = getCenters();
+  //find distance to first center and set it as min
+  double min_dist=
+  EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[0].begin()),dist;
+  for(int i=1; i<centers.size(); i++){
+    //for all next distances find the smallest
+    dist = EuclideanVectorDistanceSquared(v.begin(),v.end(),centers[i].begin());
+    if(min_dist> dist){
+      min_dist = dist;
+    }
+  }
+  return min_dist;
+}
+
+/*Return the position of nearest center in the Cluster Space "Clusters" vector*/
+int ClusterSpace::NearestCenter(myvector &v){
+  //get all centers
+  vector<myvector> centers = getCenters();
+  //find distance to first center and set it as min
+  int nearest_center_pos=0;
+  double min_dist=EuclideanVectorDistance(v.begin(),v.end(),centers[0].begin());
+  double dist;
+  for(int i=1; i<centers.size(); i++){
+    //for all next distances find the smallest
+    dist = EuclideanVectorDistance(v.begin(),v.end(),centers[i].begin());
+    if(min_dist> dist){
+      min_dist = dist;
+      nearest_center_pos = i;
+    }
+  }
+  return nearest_center_pos;
+}
+//Overloaded
+int ClusterSpace::NearestCenter(myvector &v,const vector<Cluster*> &clusters,
+  double* min_dist){
+  //find distance to first center and set it as min
+  int nearest_center_pos=0;
+  *min_dist = EuclideanVectorDistance(v.begin(),v.end(),
+                                      clusters[0]->getCenter().begin());
+  double dist;
+  for(int i=1; i<clusters.size(); i++){
+    //for all next distances find the smallest
+    dist = EuclideanVectorDistance( v.begin(),v.end(),
+                                    clusters[i]->getCenter().begin());
+    if(*min_dist > dist){
+      *min_dist = dist;
+      nearest_center_pos = i;
+    }
+  }
+  return nearest_center_pos;
+}
 
 double ClusterSpace::MinDistanceBetweenCenters(){
   //get all centers
@@ -333,12 +329,17 @@ double ClusterSpace::MinDistanceBetweenCenters(){
   return min_dist;
 }
 
+void ClusterSpace::LloydsAssignWrapper(MyVectorContainer &vectors,
+  std::vector<HashTable*> mocktable){
+  LloydsAssign(vectors);
+}
+
 void ClusterSpace::RangeSearchHypercubeAssignWrapper(MyVectorContainer
   &vectors,std::vector<HashTable*> HTable){
     RangeSearchHypercubeAssign(vectors,*(HTable[0]));
-  }
+}
 
-/*return hashes of every center in clusters vector*/
+/*return hashes to HashTable of every center in Clusters*/
 vector<int> CenterHashes(vector<Cluster*> &clusters, HashTable* HTable){
   vector<int> result(clusters.size());
   for(int i=0; i<clusters.size(); i++){
