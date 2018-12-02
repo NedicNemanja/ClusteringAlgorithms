@@ -2,19 +2,19 @@
 
 using namespace std;
 
-Cluster::Cluster(vector_index c)
+Cluster::Cluster(myvector c)
 :center(c){
 }
 
 Cluster::~Cluster(){}
 
 myvector Cluster::getCenter(){
-  return AllVectors[center];
+  return center;
 }
 
 void Cluster::Print(){
   cout << "\t" << "center: ";
-  AllVectors[center].print(cout);
+  center.print(cout);
   cout << endl;
   return;
   for(auto it=members.begin(); it!=members.end(); it++){

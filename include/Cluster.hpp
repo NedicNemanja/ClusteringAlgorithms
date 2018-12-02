@@ -7,11 +7,11 @@
 #include <vector>
 
 class Cluster{
-    vector_index center;
+    myvector center;  //remember that center might not be a part of the dataset
     //vector_indexes of points that belong to the cluster, excluding centers
     std::vector<vector_index> members;
   public:
-    Cluster(vector_index center);
+    Cluster(myvector center);
     ~Cluster();
     myvector getCenter();
     void Print();

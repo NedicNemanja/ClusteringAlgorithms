@@ -20,16 +20,14 @@ AssignedVectorBitMap(vectors.size(),false)
     srand(time(NULL));
     for(int i=0; i<CmdArgs::number_of_clusters; i++){
       //init cluster with random center
-      Cluster c(rand()%vectors.size());
-      Clusters.push_back(c);
+      Clusters.push_back(Cluster(vectors[rand()%vectors.size()]));
     }
   }
   if(init_algorithm == "K-means++"){
     //choose a centroid uniformly
     random_device generator;
     uniform_int_distribution<int> distribution(0,vectors.size()-1);
-    Cluster c(distribution(generator));
-    Clusters.push_back(c);
+    Clusters.push_back(Cluster(vectors[distribution(generator)]));
     //distances (vector to nearest center) that get updated every loop
     std::vector<double> DistPartialSums(vectors.size(),0);
     double prev_sum=0;
@@ -51,7 +49,7 @@ AssignedVectorBitMap(vectors.size(),false)
       //create cluster with new center
       vector_index pos = new_center-DistPartialSums.begin();
       //cout << *new_center << " at " << pos << endl << flush;
-      Clusters.push_back(Cluster(pos));
+      Clusters.push_back(Cluster(vectors[pos]));
     }
   }
 }
