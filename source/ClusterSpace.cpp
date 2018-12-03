@@ -10,24 +10,26 @@
 
 using namespace std;
 
+ClusterSpace::ClusterSpace(){}
+
 ClusterSpace::ClusterSpace(MyVectorContainer &vectors,string init,
 string assign, string update)
 :init_algorithm(init),assign_algorithm(assign),update_algorithm(update),
 AssignedVectorBitMap(vectors.size(),false)
 {
   cout<<"Starting "<<init<<" | "<<assign<<" | "<<update<<endl;
-  if(init_algorithm == "Random"){
+  if(init_algorithm == "Random Init"){
     srand(time(NULL));
     for(int i=0; i<CmdArgs::number_of_clusters; i++){
       //init cluster with random center
-      Clusters.push_back(Cluster(vectors[rand()%vectors.size()]));
+      Clusters.push_back(Cluster(rand()%vectors.size()));
     }
   }
   if(init_algorithm == "K-means++"){
     //choose a centroid uniformly
     random_device generator;
     uniform_int_distribution<int> distribution(0,vectors.size()-1);
-    Clusters.push_back(Cluster(vectors[distribution(generator)]));
+    Clusters.push_back(Cluster(distribution(generator)));
     //distances (vector to nearest center) that get updated every loop
     std::vector<double> DistPartialSums(vectors.size(),0);
     double prev_sum=0;
@@ -49,7 +51,7 @@ AssignedVectorBitMap(vectors.size(),false)
       //create cluster with new center
       vector_index pos = new_center-DistPartialSums.begin();
       //cout << *new_center << " at " << pos << endl << flush;
-      Clusters.push_back(Cluster(vectors[pos]));
+      Clusters.push_back(Cluster(pos));
     }
   }
 }
@@ -73,6 +75,10 @@ bool ClusterSpace::isCenter(const myvector &p){
   return false;
 }
 
+Cluster ClusterSpace::getCluster(int i){
+  return Clusters[i];
+}
+
 void ClusterSpace::Print(){
   for(auto it=Clusters.begin(); it!=Clusters.end(); it++){
     it->Print();
@@ -80,30 +86,61 @@ void ClusterSpace::Print(){
 }
 
 void ClusterSpace::RunClusteringAlgorithms(MyVectorContainer &vectors,
-vector<HashTable*> HTables){
-  void (ClusterSpace::*assign_func)(MyVectorContainer&,std::vector<HashTable*>);
+vector<HashTable*> HTables, HashTable* HypercubeTable){
+  void (ClusterSpace::*assign_func)(MyVectorContainer&,std::vector<HashTable*>&);
   void (ClusterSpace::*update_func)(MyVectorContainer&);
-  if(assign_algorithm == "Llyod's")
+  vector<HashTable*> hashtables = HTables;
+  if(assign_algorithm == "Lloyd's"){
     assign_func = &ClusterSpace::LloydsAssignWrapper;
-  if(assign_algorithm == "RangeSearchLSH")
+  }
+  if(assign_algorithm == "RangeSearchLSH"){
+    hashtables = HTables;
     assign_func = &ClusterSpace::RangeSearchLSHAssign;
-  if(assign_algorithm == "RangeSearchHypercube")
+  }
+  if(assign_algorithm == "RangeSearchHypercube"){
+    hashtables.push_back(HypercubeTable);
     assign_func = &ClusterSpace::RangeSearchHypercubeAssignWrapper;
+  }
   if(update_algorithm == "K-means")
     update_func = &ClusterSpace::K_means;
-  //if(update_algorithm == "PAM")
-    //update_func =
+  if(update_algorithm == "PAM")
+    update_func = &ClusterSpace::PAM;
 
-  bool stop_criteria_met = false;
-  while(stop_criteria_met == false){
-    (this->*assign_func)(vectors,HTables);
+  int iteration = 0;
+  ClusterSpace prevClusterSpaceImage;
+  (this->*assign_func)(vectors,hashtables);
+  (this->*update_func)(vectors);
+  do{
+    iteration++;
+    prevClusterSpaceImage = *this;
+    (this->*assign_func)(vectors,hashtables);
     (this->*update_func)(vectors);
+  }while(!ObjectiveFunctionCoverges(prevClusterSpaceImage) &&
+          iteration<CmdArgs::max_iterations);
+  cout << "\t" << "iterations:" << iteration+1 << endl << endl;
+}
+
+/*Calculate by how much the centers have shifted since last iteration*/
+bool ClusterSpace::ObjectiveFunctionCoverges(ClusterSpace &prevCS){
+  double avg_center_shift=0;
+  for(int i=0; i<Clusters.size(); i++){
+    myvector curr_center = Clusters[i].getCenter();
+    avg_center_shift += EuclideanVectorDistance(curr_center.begin(),
+                                                curr_center.end(),
+                                      prevCS.getCluster(i).getCenter().begin());
   }
+  avg_center_shift /= Clusters.size();
+  if(avg_center_shift <= CmdArgs::center_convergence_tolerance){
+    cout << "\t" << "avg convergence:" << avg_center_shift << endl;
+    return true;  //convergence tolerance met, Clustering can stop
+  }
+  else
+    return false;
 }
 
 /*Assign vectors to their nearest center*/
 void ClusterSpace::LloydsAssign(MyVectorContainer &vectors){
-  for(int index=0,size=vectors.size(); index<size; index++){
+  for(int index=0; index<vectors.size(); index++){
     if(isCenter(vectors[index])) continue;
     Clusters[NearestCenter(vectors[index])].AddVector(index);
   }
@@ -121,7 +158,7 @@ void ClusterSpace::LloydsAssign(MyVectorContainer &vectors, const string s){
 }
 
 void ClusterSpace::RangeSearchLSHAssign(MyVectorContainer &vectors,
-  vector<HashTable*> HTables){
+  vector<HashTable*> &HTables){
   double radius = MinDistanceBetweenCenters()/2;
   int iteration=0;
   /*For every hashtable create a multimap with
@@ -179,7 +216,7 @@ void ClusterSpace::RangeSearchHypercubeAssign(MyVectorContainer &vectors,
   while(num_assigned_vectors<vectors.size() &&
   iteration<CmdArgs::RANGESEARCH_ITERATIONS){
     //range search for every bucket
-    for(int b_hash; b_hash<htable.num_buckets(); b_hash++){
+    for(int b_hash=0; b_hash<htable.num_buckets(); b_hash++){
       int count=CenterMap.count(b_hash);
       if(count == 1){ //one center, do normal range search inside bucket
         //get cluster that is centered in this bucket
@@ -204,6 +241,7 @@ void ClusterSpace::RangeSearchHypercubeAssign(MyVectorContainer &vectors,
       }
     }
     radius*=2;
+    iteration++;
   }
   //everything that left unassigned assign with Llyod's
   LloydsAssign(vectors,"assign leftovers");
@@ -245,11 +283,29 @@ void ClusterSpace::K_means(MyVectorContainer &vectors){
     else
       DivVector(mean,members.size()); //divide means
     //set mean as new center
-    myvector new_center(mean);
-    cluster->setCenter(new_center);
+    cluster->setCentroid(myvector(mean));
   }
 }
 
+/*PAM imporoved like Lloyd's*/
+void ClusterSpace::PAM(MyVectorContainer &vectors){
+  //for every cluster compute its medoid
+  for(auto cluster=Clusters.begin(); cluster!=Clusters.end(); cluster++){
+    vector_index medoid = cluster->getMedoid();
+    double min_dis = cluster->ClusterDissimilarity(vectors[medoid]);
+    vector<vector_index> members = cluster->getMembers();
+    //for every member calc sum of distances assuming its the medoid
+    for(auto member=members.begin(); member!=members.end(); member++){
+      double dissimilarity = cluster->ClusterDissimilarity(vectors[*member]);
+      if(dissimilarity < min_dis){
+        min_dis = dissimilarity;
+        medoid = *member;
+      }
+    }
+    //set medoid as new center
+    cluster->setMedoid(medoid);
+  }
+}
 /***********************Utility**********************************************/
 
 /*Return the min distance to any center in the Cluster Space*/
@@ -330,12 +386,12 @@ double ClusterSpace::MinDistanceBetweenCenters(){
 }
 
 void ClusterSpace::LloydsAssignWrapper(MyVectorContainer &vectors,
-  std::vector<HashTable*> mocktable){
+  std::vector<HashTable*> &mocktable){
   LloydsAssign(vectors);
 }
 
 void ClusterSpace::RangeSearchHypercubeAssignWrapper(MyVectorContainer
-  &vectors,std::vector<HashTable*> HTable){
+  &vectors,std::vector<HashTable*> &HTable){
     RangeSearchHypercubeAssign(vectors,*(HTable[0]));
 }
 

@@ -10,6 +10,7 @@ typedef enum ERRORCODE { OK=0,
                   UNDEFINED_COSINE_ZERO_VECTOR, //cosine similarity for zero ve-
                                                 //ctor is poinless and undefined
                                                 //don't use it for data that has
+                  BAD_CONFIG_FILE
 } ERRORCODE;
 
 #endif

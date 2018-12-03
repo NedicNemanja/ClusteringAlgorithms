@@ -16,11 +16,13 @@ class ClusterSpace{
     std::vector<bool> AssignedVectorBitMap;
     int num_assigned_vectors=0; //num of values set to true in BitMap
   public:
+    ClusterSpace();
     ClusterSpace(MyVectorContainer&, std::string, std::string, std::string);
     ~ClusterSpace();
     std::vector<myvector> getCenters();
     void Print();
     bool isCenter(const myvector &p);
+    Cluster getCluster(int i);
     double MinDistanceToCenterSquared(myvector &v);
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
@@ -32,20 +34,23 @@ class ClusterSpace{
     //Overloaded so that a center within hamming_dist is mapped to a bucket
     std::multimap<int,Cluster*> MapCentersToBuckets(HashTable&,int hamm_dist);
     /*Run the clustering algorithms pointed by init_algorithm,assign...etc*/
-    void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>);
+    void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>,HashTable*);
     /*Assign vectors to their nearest center*/
     void LloydsAssign(MyVectorContainer &vectors);
-    void LloydsAssignWrapper(MyVectorContainer&,std::vector<HashTable*>);
+    void LloydsAssignWrapper(MyVectorContainer&,std::vector<HashTable*>&);
     /*Assign vectors that are unassigned to their nearest center*/
     void LloydsAssign(MyVectorContainer &vectors,const std::string);
     /*Assign vectors by radius, doubling it until stop criteria is met.*/
-    void RangeSearchLSHAssign(MyVectorContainer&,std::vector<HashTable*>);
+    void RangeSearchLSHAssign(MyVectorContainer&,std::vector<HashTable*>&);
     void RangeSearchHypercubeAssign(MyVectorContainer&,HashTable&);
-    void RangeSearchHypercubeAssignWrapper(MyVectorContainer&,std::vector<HashTable*>);
+    void RangeSearchHypercubeAssignWrapper(MyVectorContainer&,std::vector<HashTable*>&);
     /*For every vector in bucket,assign to nearest Cluster center within radius*/
     void NearestCenterRangeAssign(Bucket,double,const std::vector<Cluster*>&,MyVectorContainer&);
     /*Calculate mean vector of the  every cluster and set it as the new center*/
     void K_means(MyVectorContainer &vectors);
+    /*PAM imporoved like Lloyd's*/
+    void PAM(MyVectorContainer &vectors);
+    bool ObjectiveFunctionCoverges(ClusterSpace&);
 };
 
 

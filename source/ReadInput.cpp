@@ -19,6 +19,8 @@ namespace CmdArgs{
     int RANGESEARCH_ITERATIONS;
     int HYPERCUBE_PROBES;
     int dimension;
+    double center_convergence_tolerance;
+    int max_iterations;
 };
 
 /*Parse cmd line arguments and read from cin any that are missing*/
@@ -78,7 +80,8 @@ void ParseArguments(int argc, char** argv){
 
 void ReadConfigurationFile(std::string filename){
   int clusters_flag=0, hash_func_flag=0, hashtables_flag=0, dimension_flag=0,
-  hypercube_probes_flag=0, rangesearch_iterations_flag=0;
+  hypercube_probes_flag=0, rangesearch_iterations_flag=0,cc_tolerance_flag=0,
+  max_iterations_flag=0;
   ifstream file = OpenInFile(filename);
   string field_name;
   while(!file.eof()){
@@ -131,11 +134,29 @@ void ReadConfigurationFile(std::string filename){
         continue;
       }
     }
+    if(field_name == "center_convergence_tolerance:"){
+      if(!file.eof()){
+        file >> CmdArgs::center_convergence_tolerance;
+        cc_tolerance_flag=1;
+        field_name.clear();
+        continue;
+      }
+    }
+    if(field_name == "max_iterations:"){
+      if(!file.eof()){
+        file >> CmdArgs::max_iterations;
+        max_iterations_flag=1;
+        field_name.clear();
+        continue;
+      }
+    }
     if(!file.eof()){
       cerr << "Unknown argument in .conf: -" << field_name <<"-" << endl;
       exit(UNKNOWN_CMDARGUMENT);
     }
   }
+  file.close();
+
   //check that all is set, if not use default values
   if(clusters_flag == 0){
     cout << "Default number_of_clusters: 3" << endl;
@@ -158,7 +179,12 @@ void ReadConfigurationFile(std::string filename){
   else
     cout << "number_of_hashtables (L): " << CmdArgs::L << endl;
 
-  file.close();
+
+  if(dimension_flag==0 || hypercube_probes_flag==0 || max_iterations_flag==0 ||
+    rangesearch_iterations_flag==0 || cc_tolerance_flag==0){
+      cout << "Badness in Config file" << endl;
+      exit(BAD_CONFIG_FILE);
+  }
 }
 
 
@@ -169,9 +195,7 @@ MyVectorContainer ReadDataset(ifstream &data, int dim){
   vector<coord> coords(dim);  //temp vector that gets overwritten every loop
   vector<myvector> vectors;
   while(GetVector(data, coords, id, dim)){
-      myvector vec(coords,id);
-      //vec.print(cout);
-      vectors.push_back(vec);
+      vectors.push_back(myvector(coords,id));
   }
   return vectors;
 }

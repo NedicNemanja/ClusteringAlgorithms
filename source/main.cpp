@@ -43,7 +43,7 @@ int main(int argc, char** argv){
     //Initialize
     ClusterSpace S(AllVectors,init,assign,update);
     //Assign and Update
-    S.RunClusteringAlgorithms(AllVectors,LSH_Hashtables);
+    S.RunClusteringAlgorithms(AllVectors,LSH_Hashtables,&HypercubeHashtable);
   }
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
@@ -52,6 +52,7 @@ int main(int argc, char** argv){
   outfile.close();
   return OK;
 }
+
 
 void SetAlgorithmChoices(int i,string &init, string &assign,string &update){
   cout << i << ".";

@@ -16,6 +16,8 @@ namespace CmdArgs{
     extern int RANGESEARCH_ITERATIONS;
     extern int HYPERCUBE_PROBES;
     extern int dimension;
+    extern double center_convergence_tolerance;
+    extern int max_iterations;
 };
 
 /*Parse cmd line arguments and read from cin any that are missing*/

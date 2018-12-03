@@ -3,7 +3,7 @@ SOURCE_DIR = ./source
 OBJECT_DIR = ./object
 
 CC = g++
-CFLAGS=-g -I$(INCLUDE_DIR)
+CFLAGS=-g -I$(INCLUDE_DIR) -O3
 OUT = cluster
 
 _DEPS = Cluster.hpp ClusterSpace.hpp CosineSimilarity.hpp ErrorCodes.hpp HashTable.hpp HypercubeEuclidean.hpp LSHEuclidean.hpp Metric.hpp myvector.hpp utility.hpp WriteOutput.hpp ParsingCSV.hpp ReadInput.hpp
