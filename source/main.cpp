@@ -53,7 +53,7 @@ int main(int argc, char** argv){
     clock_gettime(CLOCK_MONOTONIC,&end);
     double t=(end.tv_sec-start.tv_sec + (end.tv_nsec-start.tv_nsec)/1000000000.0);
     cout << "\t" << "clustering_time:" << t << "sec" << endl;
-    //WriteResult(outfile, code, S, t);
+    WriteResult(outfile, code, S, t);
   }
   //cleanup
   for(int i=0; i<CmdArgs::L; i++){
