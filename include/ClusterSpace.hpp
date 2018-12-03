@@ -27,12 +27,15 @@ class ClusterSpace{
     double MinDistanceBetweenCenters();
     int NearestCenter(myvector &v);
     int NearestCenter(myvector &v,const std::vector<Cluster*>&,double*);
+    Cluster SecondNearestCluster(myvector&, int assigned);
     /*Create a CenterMap for every HashTable*/
     void SetCenterMaps(std::vector<std::multimap<int,Cluster*>>&,std::vector<HashTable*>);
     //multiple centers can map to one bucket. multimap:(bucket_hash->centers)
     std::multimap<int,Cluster*> MapCentersToBuckets(HashTable&);
     //Overloaded so that a center within hamming_dist is mapped to a bucket
     std::multimap<int,Cluster*> MapCentersToBuckets(HashTable&,int hamm_dist);
+    //unassign all members from clusters and reset AssignedVectorBitMap
+    void UnassignAll();
     /*Run the clustering algorithms pointed by init_algorithm,assign...etc*/
     void RunClusteringAlgorithms(MyVectorContainer&,std::vector<HashTable*>,HashTable*);
     /*Assign vectors to their nearest center*/
@@ -50,7 +53,10 @@ class ClusterSpace{
     void K_means(MyVectorContainer &vectors);
     /*PAM imporoved like Lloyd's*/
     void PAM(MyVectorContainer &vectors);
+    /*In conf you can define a parameter that set the precision of convergence*/
     bool ObjectiveFunctionCoverges(ClusterSpace&);
+    //for every cluster calculate average of s(p), where p all clusters points
+    std::vector<double> Silhouette(MyVectorContainer &vectors);
 };
 
 

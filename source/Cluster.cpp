@@ -37,17 +37,18 @@ std::vector<vector_index> Cluster::getMembers(){
   return members;
 }
 
+int Cluster::size(){
+  int cluster_size = members.size();
+  if(medoid != -1)
+    cluster_size++;
+  return cluster_size;
+}
 
-
-void Cluster::Print(){
-  cout << "\t" << "center: ";
-  getCenter().print(cout);
-  cout << endl;
-  return;
+void Cluster::Print(std::ostream &out){
   for(auto it=members.begin(); it!=members.end(); it++){
-    cout << "\t";
-    AllVectors[*it].print(cout);
-    cout << endl;
+    out << AllVectors[*it].get_id();
+    if(it+1 != members.end())
+       out << ",";
   }
 }
 
@@ -55,7 +56,7 @@ void Cluster::AddVector(vector_index vindex){
   members.push_back(vindex);
 }
 
-/*Calc dissimilarity of v from cluster*/
+/*Calc dissimilarity of v from cluster (sum of distances)*/
 double Cluster::ClusterDissimilarity(myvector &v){
   double sum = 0;
   for(auto it=members.begin(); it!=members.end(); it++){
@@ -64,4 +65,8 @@ double Cluster::ClusterDissimilarity(myvector &v){
   if(medoid != -1)
    sum += EuclideanVectorDistance(v.begin(),v.end(),AllVectors[medoid].begin());
   return sum;
+}
+
+void Cluster::UnassignMembers(){
+  members.clear();
 }

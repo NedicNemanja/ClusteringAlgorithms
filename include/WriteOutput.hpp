@@ -5,10 +5,8 @@
 #include <list>
 
 #include "myvector.hpp"
+#include "ClusterSpace.hpp"
 
-void WriteResult( std::ofstream &outfile, std::list<myvector> &rNN,
-                  myvector &q, myvector &nn,
-                  double distanceLHS, double distanceTrue,
-                  double timeLHS, double timeTrue);
+void WriteResult(std::ofstream&, int code, ClusterSpace&, double time);
 
 #endif

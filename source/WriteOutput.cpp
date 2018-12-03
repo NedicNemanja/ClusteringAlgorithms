@@ -1,22 +1,44 @@
 #include "WriteOutput.hpp"
+#include "ReadInput.hpp"
 
 #include <iostream>
 
 using namespace std;
 
-void WriteResult( std::ofstream &outfile, list<myvector> &rNN,
-                  myvector &q, myvector &nn,
-                  double distanceLHS, double distanceTrue,
-                  double timeLHS, double timeTrue)
-{
-  outfile << "Query: " << q.get_id() << endl;
-  outfile << "R-near neighbors:" << endl;
-  for(list<myvector>::iterator it=rNN.begin(); it != rNN.end(); it++){
-    outfile << (*it).get_id() << endl;
+
+void WriteResult(std::ofstream & outfile, int code, ClusterSpace& S,
+  double clustering_time){
+  outfile << "Algorithm: "<<code/100<<"x"<<(code%100)/10<<"x"<<(code%10)<<endl;
+
+  outfile << "Metric: " << CmdArgs::Metric << endl;
+
+  for(int i=0; i<CmdArgs::number_of_clusters; i++){
+    Cluster cluster = S.getCluster(i);
+    outfile<<"CLUSTER-"<< i+1 <<"{size: "<<cluster.size()<<", centroid: ";
+    string centro_id = cluster.getCenter().get_id();
+    if(!centro_id.empty())
+      outfile << centro_id << "}" << endl;
+    else{
+      cluster.getCenter().print(outfile);
+      outfile << "}" << endl;
+    }
   }
-  outfile << "Nearest neighbor: " << nn.get_id() << endl;
-  outfile << "distanceLHS: " << distanceLHS << endl;
-  outfile << "distanceTrue: " << distanceTrue << endl;
-  outfile << "tLHS: " << timeLHS << endl;
-  outfile << "tTrue: " << timeTrue << endl << endl;
+
+  outfile << "clustering_time: " << clustering_time << endl;
+
+  outfile << "Silhouette: [";
+  vector<double> silhouette = S.Silhouette(AllVectors);
+  double sum=0;
+  for(auto it=silhouette.begin(); it!=silhouette.end(); it++){
+    outfile << *it << ",";
+    sum += *it;
+  }
+  outfile << sum/silhouette.size() << "]" << endl;
+
+  for(int i=0; i<CmdArgs::number_of_clusters; i++){
+    outfile<<"CLUSTER-"<< i+1 << "{";
+    S.getCluster(i).Print(outfile);
+    outfile << "}" << endl;
+  }
+  outfile << endl;
 }

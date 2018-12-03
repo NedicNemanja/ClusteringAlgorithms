@@ -109,7 +109,7 @@ HashTable::HashTable(int size, string metric_name, int dimension,string tabletyp
 }
 
 HashTable::~HashTable(){
-  cout << "HashTable destroyed" << endl;
+  //cout << "HashTable destroyed" << endl;
   delete metric;
 }
 

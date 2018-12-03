@@ -5,6 +5,7 @@
 #include "Metric.hpp"
 
 #include <vector>
+#include <iostream>
 
 class Cluster{
     myvector centroid;
@@ -22,10 +23,13 @@ class Cluster{
     void setCentroid(myvector);
     vector_index setMedoid();
     std::vector<vector_index> getMembers();
-    void Print();
+    void Print(std::ostream &out);
+    int size();
     void AddVector(vector_index vindex);
     /*Calc dissimilarity of v from cluster*/
     double ClusterDissimilarity(myvector &v);
+    //clear members vector
+    void UnassignMembers();
 };
 
 #endif
