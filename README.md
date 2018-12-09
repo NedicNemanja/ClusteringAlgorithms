@@ -1,13 +1,13 @@
 # ClusteringAlgorithms
-Implementation of Clustering Algorithms
+Implementation, analysis and comparison of Clustering Algorithms for large datasets.
 
-#Initialization
+# Initialization
 
 1.Random selection of k points (simplest) 
 
 2.K-means++  
 
-#Assignment
+# Assignment
 
 1.Lloyd’s assignment
 
@@ -15,7 +15,7 @@ Implementation of Clustering Algorithms
 
 3.Assignment by Range search with Hypercube (εργασία 1)
 
-#Update
+# Update
 
 1.K-means
 
