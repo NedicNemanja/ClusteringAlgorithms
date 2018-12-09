@@ -1,5 +1,7 @@
 ```Implementation, analysis and comparison of Clustering Algorithms for large datasets.```
 
+```For the report and more info consult the project2_readme.pdf```
+
 The following were implemented and compared (12 combinations in total):
 
 # Initialization
@@ -21,5 +23,3 @@ The following were implemented and compared (12 combinations in total):
 1.K-means
 
 2.Partitioning Around Medoids (PAM) improved like Lloyd’s
-
-For the report and more info consult the project2_readme.pdf
