@@ -1,6 +1,6 @@
 ```Implementation, analysis and comparison of Clustering Algorithms for large datasets.```
 
-The following were imlemented and compared (12 combinations in total):
+The following were implemented and compared (12 combinations in total):
 
 # Initialization
 
